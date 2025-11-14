@@ -68,6 +68,8 @@ def main() -> None:
                 "params": total_params,
                 "mult_adds_per_batch_forward": total_mult_adds,
                 "mult_adds_per_sample_forward": per_sample_mult_adds,
+                "flops_per_batch_forward": 2.0 * total_mult_adds,
+                "flops_per_sample_forward": 2.0 * per_sample_mult_adds,
             }
 
     json_path = args.output_dir / "summary.json"

@@ -315,6 +315,7 @@ Key flags:
 	•	--warmup-iters, --iters (measured loop)
 	•	--precision {fp32,amp}, --backend {auto,cuda,cpu,mps}
 	•	--pin-memory (CUDA loaders), --synthetic (FakeData sanity runs before dataset sync)
+	•	--no-augment / --prefetch-factor / --channels-last / --grad-accum-steps / --nvtx / --deterministic / --cudnn-benchmark for finer control over pipelines.
 	•	--label STRING, --log-dir logs (appends to logs/metrics.csv)
 
 It prints a one-line summary and appends a CSV row with host, device, timing, and throughput. This CSV is your primary timing ledger.

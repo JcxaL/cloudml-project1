@@ -1,33 +1,24 @@
 #!/usr/bin/env python3
 """Minimal driver around torchvision ImageNet models for short, timed runs.
 
-The script focuses on deterministic iteration counts so measurements are
-comparable across environments (GPU, CPU, MPS, cloud).  It performs:
-
-* Dataset loading via torchvision.datasets.ImageFolder
-* Warm-up iterations (ignored for timing)
-* Fixed measured iterations instrumented with time.monotonic()
-* Optional CUDA AMP via --precision amp
-* CSV logging for downstream roofline/analysis work
-
-Example:
-
-    python code/run_train.py \
-        --data data/imagenet-mini --arch resnet50 --batch-size 128 \
-        --warmup-iters 10 --iters 100 --precision fp32
-
+Adds knobs for reproducibility (seeds, deterministic algorithms), data loading
+(no augment vs. training augment, prefetch factor, pinning), performance toggles
+(channels_last, grad accumulation), and optional NVTX markers for Nsight.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import os
+import random
 import socket
 import sys
 import time
 from contextlib import nullcontext
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -57,6 +48,34 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--label", default="", help="Optional label stored in metrics.csv")
     parser.add_argument("--log-dir", type=Path, default=Path("logs"), help="Where to write metrics.csv")
     parser.add_argument("--pin-memory", action="store_true", help="Enable CUDA pinned memory for DataLoader")
+    parser.add_argument("--prefetch-factor", type=int, default=2, help="DataLoader prefetch_factor (workers > 0)")
+    parser.add_argument(
+        "--no-augment",
+        action="store_true",
+        help="Disable RandomResizedCrop/HorizontalFlip; use Resize+CenterCrop",
+    )
+    parser.add_argument(
+        "--channels-last",
+        action="store_true",
+        help="Run model/inputs in channels_last format (recommended on CUDA ConvNets)",
+    )
+    parser.add_argument(
+        "--grad-accum-steps",
+        type=int,
+        default=1,
+        help="Number of microbatches to accumulate before stepping",
+    )
+    parser.add_argument("--nvtx", action="store_true", help="Emit NVTX range over measured region (CUDA only)")
+    parser.add_argument(
+        "--deterministic",
+        action="store_true",
+        help="Enable torch deterministic algorithms (less variance, may hurt perf)",
+    )
+    parser.add_argument(
+        "--cudnn-benchmark",
+        action="store_true",
+        help="Enable cudnn.benchmark (great for fixed shapes, off by default)",
+    )
     parser.add_argument(
         "--synthetic",
         action="store_true",
@@ -104,6 +123,9 @@ def build_dataloader(
     *,
     synthetic: bool,
     total_steps: int,
+    no_augment: bool,
+    prefetch_factor: int,
+    seed: int,
 ) -> torch.utils.data.DataLoader:
     train_dir = data_root / "train"
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -118,30 +140,58 @@ def build_dataloader(
     else:
         if not train_dir.exists():
             raise FileNotFoundError(f"Expected ImageNet-style train folder at {train_dir}")
-        dataset = datasets.ImageFolder(
-            train_dir,
-            transforms.Compose(
+        if no_augment:
+            tfm = transforms.Compose(
+                [
+                    transforms.Resize(256),
+                    transforms.CenterCrop(224),
+                    transforms.ToTensor(),
+                    normalize,
+                ]
+            )
+        else:
+            tfm = transforms.Compose(
                 [
                     transforms.RandomResizedCrop(224),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     normalize,
                 ]
-            ),
+            )
+        dataset = datasets.ImageFolder(train_dir, tfm)
+
+    if len(dataset) < batch_size:
+        raise ValueError(
+            f"Dataset has {len(dataset)} samples but batch_size={batch_size}. "
+            "Reduce batch size or use --synthetic for dry runs."
         )
 
-    if len(dataset) == 0:
-        raise ValueError(f"Dataset under {train_dir} is empty; add samples before running experiments")
+    generator = torch.Generator()
+    generator.manual_seed(seed)
 
-    drop_last = len(dataset) >= batch_size
+    def _worker_init_fn(worker_id: int) -> None:
+        worker_seed = (seed + worker_id) % (2**32)
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
+        torch.manual_seed(worker_seed)
+
+    loader_kwargs = {}
+    if workers > 0:
+        loader_kwargs["prefetch_factor"] = max(1, prefetch_factor)
+        loader_kwargs["worker_init_fn"] = _worker_init_fn
+    else:
+        loader_kwargs["worker_init_fn"] = None
+
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=not synthetic,
         num_workers=workers,
         pin_memory=use_pin_mem and device.type == "cuda",
-        drop_last=drop_last,
+        drop_last=True,
         persistent_workers=workers > 0,
+        generator=generator,
+        **loader_kwargs,
     )
     return loader
 
@@ -195,13 +245,29 @@ def _autocast_context(device: torch.device, enabled: bool):
         return autocast_fn(enabled=enabled)
 
 
-
 def main() -> int:
     args = parse_args()
+    grad_accum_steps = max(1, args.grad_accum_steps)
+
+    random.seed(args.seed)
+    np.random.seed(args.seed)
     torch.manual_seed(args.seed)
 
+    if args.deterministic:
+        torch.use_deterministic_algorithms(True)
+
     device = select_device(args.backend)
+    if device.type == "cuda":
+        torch.cuda.manual_seed_all(args.seed)
+
+    if torch.backends.cudnn.is_available():
+        torch.backends.cudnn.benchmark = args.cudnn_benchmark
+        if args.deterministic:
+            torch.backends.cudnn.deterministic = True
+
     model = resolve_model(args.arch).to(device)
+    if args.channels_last and device.type == "cuda":
+        model = model.to(memory_format=torch.channels_last)
     model.train()
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.SGD(
@@ -230,24 +296,11 @@ def main() -> int:
         device,
         synthetic=args.synthetic,
         total_steps=total_steps,
+        no_augment=args.no_augment,
+        prefetch_factor=args.prefetch_factor,
+        seed=args.seed + 1337,
     )
     non_blocking = device.type in {"cuda", "mps"}
-
-    def train_step(batch) -> None:
-        images, target = batch
-        images = images.to(device, non_blocking=non_blocking)
-        target = target.to(device, non_blocking=non_blocking)
-        optimizer.zero_grad(set_to_none=True)
-        with _autocast_context(device, amp_enabled):
-            output = model(images)
-            loss = criterion(output, target)
-        if scaler is not None:
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            loss.backward()
-            optimizer.step()
 
     iterator = iter(loader)
 
@@ -260,20 +313,54 @@ def main() -> int:
             batch = next(iterator)
         return batch
 
+    def train_microbatch(batch):
+        images, target = batch
+        images = images.to(device, non_blocking=non_blocking)
+        target = target.to(device, non_blocking=non_blocking)
+        if args.channels_last and device.type == "cuda":
+            images = images.to(memory_format=torch.channels_last)
+        with _autocast_context(device, amp_enabled):
+            output = model(images)
+            loss = criterion(output, target)
+        return loss
+
+    def train_step() -> None:
+        optimizer.zero_grad(set_to_none=True)
+        for _ in range(grad_accum_steps):
+            batch = next_batch()
+            loss = train_microbatch(batch) / grad_accum_steps
+            if scaler is not None:
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
+        if scaler is not None:
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            optimizer.step()
+
     for _ in range(args.warmup_iters):
-        train_step(next_batch())
+        train_step()
 
     maybe_sync(device)
+    nvtx_active = False
+    if args.nvtx and device.type == "cuda":
+        import torch.cuda.nvtx as nvtx
+
+        nvtx.range_push("measured")
+        nvtx_active = True
     start = time.monotonic()
     for _ in range(args.iters):
-        train_step(next_batch())
+        train_step()
     maybe_sync(device)
     elapsed = time.monotonic() - start
+    if nvtx_active:
+        nvtx.range_pop()
 
     if elapsed == 0:
         raise RuntimeError("Measured elapsed time is zero; increase --iters or check system timers")
 
-    images_processed = args.batch_size * args.iters
+    images_processed = args.batch_size * args.iters * grad_accum_steps
     throughput = images_processed / elapsed
 
     print(
@@ -302,6 +389,10 @@ def main() -> int:
         "data_root",
         "label",
         "torch_version",
+        "channels_last",
+        "grad_accum_steps",
+        "deterministic",
+        "cudnn_benchmark",
     ]
     row = {
         "timestamp": int(time.time()),
@@ -322,6 +413,10 @@ def main() -> int:
         "data_root": str(args.data.resolve()),
         "label": args.label,
         "torch_version": torch.__version__,
+        "channels_last": bool(args.channels_last and device.type == "cuda"),
+        "grad_accum_steps": grad_accum_steps,
+        "deterministic": bool(args.deterministic),
+        "cudnn_benchmark": bool(args.cudnn_benchmark),
     }
     write_header = not log_path.exists()
     with log_path.open("a", newline="") as csv_file:
