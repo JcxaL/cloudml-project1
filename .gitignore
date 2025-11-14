@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+env/
+.venv/
+
+# Data & logs (large / regenerated)
+data/imagenet-mini/
+logs/metrics.csv
+logs/*.txt
+tmp/
+
+# External sources
+code/examples/
+code/train_imagenet_src
+
+# macOS cruft
+.DS_Store
