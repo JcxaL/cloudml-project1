@@ -1,17 +1,22 @@
 {
   "mac": {
     "description": "Local Apple Silicon (MPS)",
-    "peak_gflops": null,
+    "peak_gflops": { "fp32": null },
     "peak_gbps": null
   },
   "rtx4090": {
     "description": "Local RTX 4090 box",
-    "peak_gflops": null,
+    "peak_gflops": { "fp32": null, "amp": null },
     "peak_gbps": null
   },
   "gcp": {
     "description": "GCP GPU VM (fill in GPU type)",
-    "peak_gflops": null,
+    "peak_gflops": { "fp32": null, "amp": null },
+    "peak_gbps": null
+  },
+  "cpu": {
+    "description": "Local CPU runs (perf stat)",
+    "peak_gflops": { "fp32": null },
     "peak_gbps": null
   }
 }

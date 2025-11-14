@@ -6,8 +6,8 @@ The same matrix applies to every environment; adjust batch sizes to fit memory. 
 |-------------|---------|--------------------------|-------------|------------|-----------------|
 | Mac CPU     | cpu     | resnet50, vgg16, mobilenet_v2 | 16, 32, 64  | fp32       | `/usr/bin/time -v`, `perf stat` (cycles, instructions, cache-misses, branches, branch-misses) |
 | Mac MPS     | mps     | resnet50, vgg16, mobilenet_v2 | 16, 32, 64  | fp32       | `/usr/bin/time -l`, Instruments (Metal System Trace as needed) |
-| RTX 4090    | cuda    | resnet50, vgg16, mobilenet_v2 | 64, 128, 256| fp32 & amp | `/usr/bin/time -v`, `ncu --csv --metrics $(cat code/metric_names_ncu.txt)` |
-| GCP GPU     | cuda    | resnet50, vgg16, mobilenet_v2 | 32, 64, 128 | fp32 & amp | `/usr/bin/time -v`, `ncu --csv --metrics $(cat code/metric_names_ncu.txt)` |
+| RTX 4090    | cuda    | resnet50, vgg16, mobilenet_v2 | 64, 128, 256| fp32 & amp | `/usr/bin/time -v`, `ncu --csv --page raw --metrics $(cat code/metric_names_ncu.txt) --log-file logs/ncu/$LABEL.csv` |
+| GCP GPU     | cuda    | resnet50, vgg16, mobilenet_v2 | 32, 64, 128 | fp32 & amp | `/usr/bin/time -v`, `ncu --csv --page raw --metrics $(cat code/metric_names_ncu.txt) --log-file logs/ncu/$LABEL.csv` |
 
 ## Command Naming Convention
 

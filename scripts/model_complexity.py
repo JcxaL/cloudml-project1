@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import json
 
 import torch
 import torchvision as tv
@@ -58,14 +59,18 @@ def main() -> None:
             out_path = args.output_dir / f"{arch}_bs{bs}.txt"
             out_path.write_text(str(info))
             print(f"Wrote {out_path}")
-            aggregate.setdefault(arch, {})[bs] = {
-                "params": int(info.total_params),
-                "mult_adds": float(info.total_mult_adds or 0.0),
+
+            total_params = int(info.total_params)
+            total_mult_adds = float(info.total_mult_adds or 0.0)
+            per_sample_mult_adds = total_mult_adds / bs if bs else total_mult_adds
+
+            aggregate.setdefault(arch, {})[str(bs)] = {
+                "params": total_params,
+                "mult_adds_per_batch_forward": total_mult_adds,
+                "mult_adds_per_sample_forward": per_sample_mult_adds,
             }
 
     json_path = args.output_dir / "summary.json"
-    import json
-
     json_path.write_text(json.dumps(aggregate, indent=2))
     print(f"Wrote {json_path}")
 

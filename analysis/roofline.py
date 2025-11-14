@@ -6,11 +6,11 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import math
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
 METRIC_FILE = Path("code/metric_names_ncu.txt")
+TRAIN_FACTOR = 2.0  # approximate forward+backward cost multiplier for training
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,11 +48,7 @@ def load_metrics_csv(path: Path) -> Iterable[dict]:
 
 
 def load_peaks(path: Path) -> Dict[str, dict]:
-    data = json.loads(path.read_text())
-    for key, spec in data.items():
-        if spec.get("peak_gflops") in (None, 0) or spec.get("peak_gbps") in (None, 0):
-            raise ValueError(f"Peak specs missing for '{key}' in {path}; fill in real values")
-    return data
+    return json.loads(path.read_text())
 
 
 def load_complexity(path: Path) -> Dict[str, dict]:
@@ -66,7 +62,7 @@ def parse_ncu_csv(path: Path, metric_names: Iterable[str]) -> Dict[str, float]:
     if not path.exists():
         return values
     wanted = set(metric_names)
-    with path.open() as fh:
+    with path.open(newline="") as fh:
         reader = csv.reader(fh)
         for row in reader:
             if not row:
@@ -86,6 +82,37 @@ def parse_ncu_csv(path: Path, metric_names: Iterable[str]) -> Dict[str, float]:
     return values
 
 
+def estimate_training_flops_per_iter(entry: dict, batch_size: int, train_factor: float) -> Optional[float]:
+    if "flops_per_batch_forward" in entry:
+        return entry["flops_per_batch_forward"] * train_factor
+    if "flops_per_sample_forward" in entry:
+        return entry["flops_per_sample_forward"] * batch_size * train_factor
+    macs = entry.get("mult_adds_per_sample_forward") or entry.get("mult_adds")
+    if macs is not None:
+        return 2.0 * macs * batch_size * train_factor
+    return None
+
+
+def resolve_env_spec(label: str, row: dict, peaks: Dict[str, dict]) -> Optional[tuple[str, dict]]:
+    candidates = [label.split("_")[0], row["backend"].lower()]
+    device_name = (row.get("device_name") or "").lower()
+    for key in peaks.keys():
+        if key.lower() in device_name:
+            candidates.append(key)
+    for candidate in candidates:
+        spec = peaks.get(candidate)
+        if spec:
+            return candidate, spec
+    return None
+
+
+def resolve_peak(spec: dict, key: str, precision: str) -> Optional[float]:
+    value = spec.get(key)
+    if isinstance(value, dict):
+        return value.get(precision) or value.get("fp32") or next(iter(value.values()), None)
+    return value
+
+
 def main() -> None:
     args = parse_args()
     metric_names = list(load_metric_names())
@@ -97,15 +124,11 @@ def main() -> None:
     out_rows = []
     for row in rows:
         label = row.get("label") or f"{row['backend']}_{row['arch']}_bs{row['batch_size']}"
-        env_key = label.split("_")[0]
-        env_spec = peaks.get(env_key)
-        if env_spec is None:
-            # fallback to backend-based key
-            env_spec = peaks.get(row["backend"].lower())
-            env_key = row["backend"].lower()
-        if env_spec is None:
+        env = resolve_env_spec(label, row, peaks)
+        if env is None:
             print(f"[warn] No peak spec for label '{label}', skipping")
             continue
+        env_key, env_spec = env
 
         flops = None
         dram_bytes = None
@@ -115,22 +138,34 @@ def main() -> None:
             if ncu_vals:
                 flop_sp = ncu_vals.get("flop_count_sp", 0.0)
                 flop_hp = ncu_vals.get("flop_count_hp", 0.0)
-                flops = flop_sp + flop_hp
-                dram_bytes = ncu_vals.get("dram__bytes_read.sum", 0.0) + ncu_vals.get("dram__bytes_write.sum", 0.0)
+                total_flops = flop_sp + flop_hp
+                if total_flops > 0:
+                    flops = total_flops
+                read_bytes = ncu_vals.get("dram__bytes_read.sum")
+                write_bytes = ncu_vals.get("dram__bytes_write.sum")
+                if read_bytes is not None and write_bytes is not None:
+                    dram_bytes = read_bytes + write_bytes
         else:
             model = row["arch"]
             batch_key = str(row["batch_size"])
             model_entry = complexity.get(model, {})
             batch_entry = model_entry.get(batch_key)
             if batch_entry is not None:
-                flops = batch_entry["mult_adds"] * row["measured_iters"]
+                per_iter = estimate_training_flops_per_iter(batch_entry, row["batch_size"], TRAIN_FACTOR)
+                if per_iter is not None:
+                    flops = per_iter * row["measured_iters"]
 
-        attained = None
-        ai = None
-        if flops is not None and row["elapsed_sec"] > 0:
-            attained = flops / row["elapsed_sec"] / 1e9
-        if flops is not None and dram_bytes:
-            ai = flops / dram_bytes
+        if flops is None or row["elapsed_sec"] <= 0:
+            continue
+
+        attained = flops / row["elapsed_sec"] / 1e9
+        ai = (flops / dram_bytes) if (dram_bytes and dram_bytes > 0) else None
+
+        peak_gflops = resolve_peak(env_spec, "peak_gflops", row["precision"])
+        peak_gbps = resolve_peak(env_spec, "peak_gbps", row["precision"])
+        if peak_gflops is None or peak_gbps is None:
+            print(f"[warn] Peak specs missing for '{label}', skipping")
+            continue
 
         out_rows.append(
             {
@@ -144,8 +179,8 @@ def main() -> None:
                 "images_per_sec": row["images_per_sec"],
                 "ai": ai,
                 "attained_gflops": attained,
-                "peak_gflops": env_spec["peak_gflops"],
-                "peak_gbps": env_spec["peak_gbps"],
+                "peak_gflops": peak_gflops,
+                "peak_gbps": peak_gbps,
             }
         )
 

@@ -122,13 +122,18 @@ Run + time
 
 (Record real/user/sys and RSS from /usr/bin/time as Lecture 7 suggests.)  ￼
 
-Profile with Nsight Compute
+Profile with Nsight Compute (CSV export)
 
+```bash
+mkdir -p logs/ncu
+LABEL=rtx4090_resnet50_fp32_prof
 ncu --profile-from-start off --target-processes all \
   --metrics $(cat code/metric_names_ncu.txt) \
+  --csv --page raw --log-file logs/ncu/${LABEL}.csv \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
   --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32 \
-  > logs/4090_resnet50_fp32_bs128_ncu.txt
+  --backend cuda --label ${LABEL}
+```
 
 (These metrics map to dram/pcie bytes and flop counts used in roofline construction.)  ￼
 
@@ -155,7 +160,7 @@ RUNS=3 LABEL=rtx4090_resnet50_fp32 bash scripts/run_repeat.sh \
   --warmup-iters 10 --iters 100 --workers 8 --backend cuda --precision fp32
 
 mkdir -p logs/ncu
-ncu --csv --profile-from-start off --target-processes all \
+ncu --csv --page raw --profile-from-start off --target-processes all \
   --metrics $(cat code/metric_names_ncu.txt) \
   --log-file logs/ncu/rtx4090_resnet50_fp32_prof.csv \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
@@ -175,13 +180,15 @@ bash scripts/run_repeat.sh --data data/imagenet-mini --arch resnet50 `
   --batch-size 128 --warmup-iters 10 --iters 100 --workers 8 `
   --backend cuda --precision fp32
 
+New-Item -ItemType Directory -Path logs\ncu -Force | Out-Null
 & "C:\Program Files\NVIDIA Corporation\Nsight Compute 2024.3\ncu.exe" `
   --profile-from-start off --target-processes all `
   --metrics flop_count_sp,flop_count_hp,dram__bytes_read.sum,dram__bytes_write.sum,pcie__read_bytes.sum,pcie__write_bytes.sum `
+  --csv --page raw --log-file logs\ncu\${env:LABEL}_prof.csv `
   python code\run_train.py --data data\imagenet-mini --arch resnet50 `
     --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 `
-    --backend cuda --precision fp32 --label win4090_resnet50_fp32_prof `
-  | Out-File -FilePath logs\win4090_resnet50_fp32_prof.txt -Encoding ascii
+    --backend cuda --precision fp32 --label ${env:LABEL}_prof `
+  | Out-File -FilePath logs\${env:LABEL}_prof.txt -Encoding ascii
 ```
 
 Log OS build, driver/CUDA/cuDNN, and whether you used WSL2 vs native Windows in `logs/env_info.md`.
@@ -268,11 +275,13 @@ which ncu
   --workers 8 --precision fp32 \
   2>&1 | tee logs/gcp_resnet50_fp32_bs128.txt
 
+mkdir -p logs/ncu
 ncu --profile-from-start off --target-processes all \
   --metrics $(cat code/metric_names_ncu.txt) \
+  --csv --page raw --log-file logs/ncu/gcp_resnet50_fp32_prof.csv \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
   --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32 \
-  > logs/gcp_resnet50_fp32_bs128_ncu.txt
+  --backend cuda --label gcp_resnet50_fp32_prof
 
 # cost hygiene
 gcloud compute instances stop $INSTANCE --zone $ZONE
@@ -325,8 +334,8 @@ Compute:
 	•	Place each point on the roofline using your environment’s peak GB/s and peak GFLOP/s; explain whether each point is bandwidth- or compute-bound and why.  ￼
 
 ### Tooling to keep this reproducible
-	1.	Run `scripts/model_complexity.py --batch-sizes 16 32 64 128 256` to dump `logs/model_summaries/*.txt` plus `summary.json` (FLOP/param references for the report + CPU/MPS roofline points).
-	2.	Capture Nsight Compute metrics as CSV per CUDA run: `ncu --csv --metrics $(cat code/metric_names_ncu.txt) --log-file logs/ncu/$LABEL.csv ...`.
+	1.	Run `scripts/model_complexity.py --batch-sizes 16 32 64 128 256` to dump `logs/model_summaries/*.txt` plus `summary.json` (FLOP/param references for the report + CPU/MPS roofline points). `analysis/roofline.py` assumes the summary encodes per-sample forward MACs and multiplies by 2× for training (adjust TRAIN_FACTOR if you justify a different value).
+	2.	Capture Nsight Compute metrics as CSV per CUDA run: `ncu --csv --page raw --metrics $(cat code/metric_names_ncu.txt) --log-file logs/ncu/$LABEL.csv ...` (always pass the same --label used for run_train.py).
 	3.	Fill real peak specs (GFLOP/s & GB/s) for each environment inside `analysis/peaks.json` (script refuses to run with `null`).
 	4.	After measurements, aggregate everything into roofline-ready rows:
 ```
@@ -403,10 +412,13 @@ One-line command index (handy)
   --batch-size 256 --warmup-iters 10 --iters 100 --workers 8 --precision amp --backend cuda
 
 # Nsight Compute metrics
+LABEL=rtx4090_resnet50_fp32_prof
 ncu --profile-from-start off --target-processes all \
   --metrics $(cat code/metric_names_ncu.txt) \
+  --csv --page raw --log-file logs/ncu/${LABEL}.csv \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
-  --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32
+  --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32 \
+  --backend cuda --label ${LABEL}
 
 ⸻
 
@@ -416,5 +428,5 @@ ncu --profile-from-start off --target-processes all \
 - `scripts/setup_env.sh` — reproducible venv bootstrap for macOS/Linux/WSL/cloud.
 - `scripts/model_complexity.py` — dumps per-model parameter/activation summaries and JSON used for CPU/MPS roofline points.
 - `scripts/run_repeat.sh` — wraps `/usr/bin/time` runs with consistent labels (set RUNS/LABEL env vars).
-- `analysis/peaks.json` — fill with real peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
+- `analysis/peaks.json` — fill with per-precision peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
 - `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv` for plotting.
