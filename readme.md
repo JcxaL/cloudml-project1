@@ -76,6 +76,12 @@ cd ~/p1-roofline
 git clone https://github.com/pytorch/examples.git code/examples
 ln -s code/examples/imagenet code/train_imagenet_src
 
+# python deps (macOS, Linux, WSL, cloud)
+python3 -m venv env/venv
+source env/venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt  # torch+torchvision/torchaudio pinned for portability
+
 # bring in your driver (already present in this repo):
 # code/run_train.py
 
