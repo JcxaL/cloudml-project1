@@ -20,3 +20,5 @@ logs/perf/{label}.txt   # perf stat output (CPU-only)
 ```
 
 This naming lets the roofline prep script correlate time + profiler metrics automatically.
+
+Batch runs: `scripts/run_repeat.sh` handles 3× repeats automatically (export RUNS/LABEL).

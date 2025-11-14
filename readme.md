@@ -142,6 +142,50 @@ Optional AMP run
 
 (Mention mixed-precision benefits/risks in the report.)
 
+### Windows & WSL2 reminders (same RTX box)
+
+- **WSL2 (Ubuntu)** — gives `/usr/bin/time` + Nsight CLI parity:
+
+```bash
+python3 -m venv env/venwsl
+source env/venwsl/bin/activate
+pip install --upgrade pip -r requirements.txt
+RUNS=3 LABEL=rtx4090_resnet50_fp32 bash scripts/run_repeat.sh \
+  --data data/imagenet-mini --arch resnet50 --batch-size 128 \
+  --warmup-iters 10 --iters 100 --workers 8 --backend cuda --precision fp32
+
+mkdir -p logs/ncu
+ncu --csv --profile-from-start off --target-processes all \
+  --metrics $(cat code/metric_names_ncu.txt) \
+  --log-file logs/ncu/rtx4090_resnet50_fp32_prof.csv \
+  python code/run_train.py --data data/imagenet-mini --arch resnet50 \
+  --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 \
+  --backend cuda --precision fp32 --label rtx4090_resnet50_fp32_prof
+```
+
+- **Native Windows (PowerShell)** — use `bash` (Git Bash/WSL) for the repeat helper and `Measure-Command` if you prefer native timing:
+
+```powershell
+python -m venv env\win4090
+env\win4090\Scripts\Activate.ps1
+pip install --upgrade pip -r requirements.txt
+$env:RUNS = 3
+$env:LABEL = "win4090_resnet50_fp32"
+bash scripts/run_repeat.sh --data data/imagenet-mini --arch resnet50 `
+  --batch-size 128 --warmup-iters 10 --iters 100 --workers 8 `
+  --backend cuda --precision fp32
+
+& "C:\Program Files\NVIDIA Corporation\Nsight Compute 2024.3\ncu.exe" `
+  --profile-from-start off --target-processes all `
+  --metrics flop_count_sp,flop_count_hp,dram__bytes_read.sum,dram__bytes_write.sum,pcie__read_bytes.sum,pcie__write_bytes.sum `
+  python code\run_train.py --data data\imagenet-mini --arch resnet50 `
+    --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 `
+    --backend cuda --precision fp32 --label win4090_resnet50_fp32_prof `
+  | Out-File -FilePath logs\win4090_resnet50_fp32_prof.txt -Encoding ascii
+```
+
+Log OS build, driver/CUDA/cuDNN, and whether you used WSL2 vs native Windows in `logs/env_info.md`.
+
 ⸻
 
 6) Exact steps — Local CPU or Apple Silicon (MPS)
@@ -183,7 +227,18 @@ pip install --upgrade pip torch torchvision torchaudio
 
 7) Exact steps — GCP GPU (cloud)
 
-Why cloud notes matter: Availability varies by zone/GPU, and virtualization can affect perf; document zone, GPU type, image, driver/CUDA, and storage. (The course even set a “GPU Chase” exercise to drive this home.)  ￼
+Why cloud notes matter: Availability varies by zone/GPU, and virtualization can affect perf; document zone, GPU type, image, driver/CUDA, and storage. (The course even set a “GPU Chase” exercise to drive this home.)
+
+### Project / quota prep (run once)
+```bash
+gcloud auth login
+gcloud config set project <PROJECT_ID>
+gcloud services enable compute.googleapis.com
+# GPU quota requests happen in the console (IAM & Admin → Quotas); target NVIDIA_L4_GPUS/NVIDIA_T4_GPUS/etc.
+```
+Pick a region/zone with real capacity (`gcloud compute accelerator-types list`) and log project/region/zone/machine/GPU/disk/network notes in `logs/env_info.md`.
+
+  ￼
 
 VM & env
 
@@ -218,6 +273,11 @@ ncu --profile-from-start off --target-processes all \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
   --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32 \
   > logs/gcp_resnet50_fp32_bs128_ncu.txt
+
+# cost hygiene
+gcloud compute instances stop $INSTANCE --zone $ZONE
+# delete when finished
+# gcloud compute instances delete $INSTANCE --zone $ZONE
 
 Optional containerization (recommended for reproducibility)
 
@@ -355,5 +415,6 @@ ncu --profile-from-start off --target-processes all \
 - `docs/run_matrix.md` — explicit run matrix (models × batch sizes × envs × repeats) for experiment design.
 - `scripts/setup_env.sh` — reproducible venv bootstrap for macOS/Linux/WSL/cloud.
 - `scripts/model_complexity.py` — dumps per-model parameter/activation summaries and JSON used for CPU/MPS roofline points.
+- `scripts/run_repeat.sh` — wraps `/usr/bin/time` runs with consistent labels (set RUNS/LABEL env vars).
 - `analysis/peaks.json` — fill with real peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
 - `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv` for plotting.
