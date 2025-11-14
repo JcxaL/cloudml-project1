@@ -264,17 +264,30 @@ Compute:
 	•	Attained GFLOP/s = FLOPs / elapsed.
 	•	Place each point on the roofline using your environment’s peak GB/s and peak GFLOP/s; explain whether each point is bandwidth- or compute-bound and why.  ￼
 
+### Tooling to keep this reproducible
+	1.	Run `scripts/model_complexity.py --batch-sizes 16 32 64 128 256` to dump `logs/model_summaries/*.txt` plus `summary.json` (FLOP/param references for the report + CPU/MPS roofline points).
+	2.	Capture Nsight Compute metrics as CSV per CUDA run: `ncu --csv --metrics $(cat code/metric_names_ncu.txt) --log-file logs/ncu/$LABEL.csv ...`.
+	3.	Fill real peak specs (GFLOP/s & GB/s) for each environment inside `analysis/peaks.json` (script refuses to run with `null`).
+	4.	After measurements, aggregate everything into roofline-ready rows:
+```
+python analysis/roofline.py --metrics logs/metrics.csv --ncu-dir logs/ncu \
+  --complexity-json logs/model_summaries/summary.json \
+  --peaks analysis/peaks.json --output analysis/roofline_points.csv
+```
+	5.	Use `analysis/roofline_points.csv` in a notebook (or matplotlib) to actually plot the rooflines + measured points for the report.
+
 ⸻
 
 10) Run matrix (keep it short but comparable)
-	•	Models: resnet50, vgg16, mobilenet_v2
+	•	Models: resnet50, vgg16, mobilenet_v2 (see `docs/run_matrix.md` for the table)
 	•	Batch sizes (indicative):
 	•	4090: 64/128/256
 	•	GCP GPU: 32/64/128 (depends on GPU)
 	•	CPU/MPS: 16/32/64
 	•	Precision: FP32 everywhere; add AMP on NVIDIA.
 	•	Iters: --warmup-iters 10, --iters 100 (use 30 iters for profiled runs to bound overhead).
-Repeat 3× per point to gauge variability (especially on cloud).
+	•	Repeats: 3 per configuration with labels `{env}_{model}_{precision}_bs{batch}_run{N}`; keep `/usr/bin/time`, `perf`, and `ncu --csv` logs under `logs/{time,perf,ncu}/`.
+	Repeat 3× per point to gauge variability (especially on cloud).
 
 ⸻
 
@@ -334,3 +347,13 @@ ncu --profile-from-start off --target-processes all \
   --metrics $(cat code/metric_names_ncu.txt) \
   python code/run_train.py --data data/imagenet-mini --arch resnet50 \
   --batch-size 128 --warmup-iters 5 --iters 30 --workers 8 --precision fp32
+
+⸻
+
+## Supporting files in this repo
+
+- `docs/run_matrix.md` — explicit run matrix (models × batch sizes × envs × repeats) for experiment design.
+- `scripts/setup_env.sh` — reproducible venv bootstrap for macOS/Linux/WSL/cloud.
+- `scripts/model_complexity.py` — dumps per-model parameter/activation summaries and JSON used for CPU/MPS roofline points.
+- `analysis/peaks.json` — fill with real peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
+- `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv` for plotting.
