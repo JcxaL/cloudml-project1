@@ -344,7 +344,7 @@ python analysis/roofline.py --metrics logs/metrics.csv --ncu-dir logs/ncu \
   --complexity-json logs/model_summaries/summary.json \
   --peaks analysis/peaks.json --output analysis/roofline_points.csv
 ```
-	5.	Use `analysis/roofline_points.csv` in a notebook (or matplotlib) to actually plot the rooflines + measured points for the report.
+	5.	Use `analysis/roofline_points.csv` in a notebook (or run `python analysis/plot_roofline.py --points analysis/roofline_points.csv`) to plot rooflines + measured points.
 
 ⸻
 
@@ -430,4 +430,5 @@ ncu --profile-from-start off --target-processes all \
 - `scripts/model_complexity.py` — dumps per-model parameter/activation summaries and JSON used for CPU/MPS roofline points.
 - `scripts/run_repeat.sh` — wraps `/usr/bin/time` runs with consistent labels (set RUNS/LABEL env vars).
 - `analysis/peaks.json` — fill with per-precision peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
-- `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv` for plotting.
+- `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv`.
+- `analysis/plot_roofline.py` — renders roofline_{env}.png from `analysis/roofline_points.csv`.

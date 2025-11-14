@@ -6,11 +6,18 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
 METRIC_FILE = Path("code/metric_names_ncu.txt")
 TRAIN_FACTOR = 2.0  # approximate forward+backward cost multiplier for training
+PRECISION_SYNONYMS = {
+    "amp": ["amp", "mixed", "fp16", "bf16", "tensorcore"],
+    "fp32": ["fp32", "float32"],
+    "fp16": ["fp16", "half"],
+    "bf16": ["bf16", "bfloat16"],
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -29,12 +36,22 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_metric_names() -> Iterable[str]:
+    if not METRIC_FILE.exists():
+        return [
+            "flop_count_sp",
+            "flop_count_hp",
+            "flop_count_dp",
+            "dram__bytes_read.sum",
+            "dram__bytes_write.sum",
+            "pcie__read_bytes.sum",
+            "pcie__write_bytes.sum",
+        ]
     text = METRIC_FILE.read_text().strip()
     return [m.strip() for m in text.split(",") if m.strip()]
 
 
-def load_metrics_csv(path: Path) -> Iterable[dict]:
-    rows = []
+def load_metrics_csv(path: Path) -> list[dict]:
+    rows: list[dict] = []
     with path.open() as fh:
         reader = csv.DictReader(fh)
         for row in reader:
@@ -48,7 +65,10 @@ def load_metrics_csv(path: Path) -> Iterable[dict]:
 
 
 def load_peaks(path: Path) -> Dict[str, dict]:
-    return json.loads(path.read_text())
+    data = json.loads(path.read_text())
+    if not isinstance(data, dict) or not data:
+        raise ValueError(f"Empty or invalid peaks file: {path}")
+    return data
 
 
 def load_complexity(path: Path) -> Dict[str, dict]:
@@ -93,11 +113,16 @@ def estimate_training_flops_per_iter(entry: dict, batch_size: int, train_factor:
     return None
 
 
+def _normalize(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", text.lower())
+
+
 def resolve_env_spec(label: str, row: dict, peaks: Dict[str, dict]) -> Optional[tuple[str, dict]]:
     candidates = [label.split("_")[0], row["backend"].lower()]
-    device_name = (row.get("device_name") or "").lower()
+    device_name = _normalize(row.get("device_name") or "")
     for key in peaks.keys():
-        if key.lower() in device_name:
+        norm_key = _normalize(key)
+        if norm_key and (norm_key in device_name or device_name in norm_key):
             candidates.append(key)
     for candidate in candidates:
         spec = peaks.get(candidate)
@@ -106,10 +131,23 @@ def resolve_env_spec(label: str, row: dict, peaks: Dict[str, dict]) -> Optional[
     return None
 
 
+def _resolve_precision_key(value_dict: dict, precision: str) -> Optional[float]:
+    if precision in value_dict:
+        return value_dict[precision]
+    for synonym in PRECISION_SYNONYMS.get(precision, []):
+        if synonym in value_dict:
+            return value_dict[synonym]
+    if "fp32" in value_dict:
+        return value_dict["fp32"]
+    for v in value_dict.values():
+        return v
+    return None
+
+
 def resolve_peak(spec: dict, key: str, precision: str) -> Optional[float]:
     value = spec.get(key)
     if isinstance(value, dict):
-        return value.get(precision) or value.get("fp32") or next(iter(value.values()), None)
+        return _resolve_precision_key(value, precision)
     return value
 
 
@@ -138,7 +176,8 @@ def main() -> None:
             if ncu_vals:
                 flop_sp = ncu_vals.get("flop_count_sp", 0.0)
                 flop_hp = ncu_vals.get("flop_count_hp", 0.0)
-                total_flops = flop_sp + flop_hp
+                flop_dp = ncu_vals.get("flop_count_dp", 0.0)
+                total_flops = flop_sp + flop_hp + flop_dp
                 if total_flops > 0:
                     flops = total_flops
                 read_bytes = ncu_vals.get("dram__bytes_read.sum")
@@ -201,8 +240,7 @@ def main() -> None:
     with args.output.open("w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
-        for row in out_rows:
-            writer.writerow(row)
+        writer.writerows(out_rows)
     print(f"Wrote {args.output} with {len(out_rows)} points")
 
 
