@@ -161,6 +161,41 @@ def device_name(device: torch.device) -> str:
     return "CPU"
 
 
+def _build_grad_scaler(device: torch.device, enabled: bool):
+    if device.type != "cuda" or not enabled:
+        return None
+    amp_module = getattr(torch, "amp", None)
+    grad_scaler_cls = getattr(amp_module, "GradScaler", None) if amp_module else None
+    if grad_scaler_cls is None:
+        cuda_mod = getattr(torch, "cuda", None)
+        amp_cuda = getattr(cuda_mod, "amp", None) if cuda_mod else None
+        grad_scaler_cls = getattr(amp_cuda, "GradScaler", None) if amp_cuda else None
+    if grad_scaler_cls is None:
+        return None
+    try:
+        return grad_scaler_cls(device_type=device.type, enabled=enabled)
+    except TypeError:
+        return grad_scaler_cls(enabled=enabled)
+
+
+def _autocast_context(device: torch.device, enabled: bool):
+    if device.type != "cuda" or not enabled:
+        return nullcontext()
+    amp_module = getattr(torch, "amp", None)
+    autocast_fn = getattr(amp_module, "autocast", None) if amp_module else None
+    if autocast_fn is None:
+        cuda_mod = getattr(torch, "cuda", None)
+        amp_cuda = getattr(cuda_mod, "amp", None) if cuda_mod else None
+        autocast_fn = getattr(amp_cuda, "autocast", None) if amp_cuda else None
+    if autocast_fn is None:
+        return nullcontext()
+    try:
+        return autocast_fn(device_type=device.type, enabled=enabled)
+    except TypeError:
+        return autocast_fn(enabled=enabled)
+
+
+
 def main() -> int:
     args = parse_args()
     torch.manual_seed(args.seed)
@@ -181,16 +216,11 @@ def main() -> int:
         print("[warn] AMP requested but CUDA backend is not active; falling back to fp32", file=sys.stderr)
         amp_enabled = False
 
-    scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
+    scaler = _build_grad_scaler(device, amp_enabled)
 
     total_steps = args.warmup_iters + args.iters
     if total_steps == 0:
         raise ValueError("At least one warmup or measured iteration is required")
-
-    def amp_context():  # noqa: D401 - small helper returning a context manager per backend
-        if device.type == "cuda":
-            return torch.cuda.amp.autocast(enabled=amp_enabled)
-        return nullcontext()
 
     loader = build_dataloader(
         args.data,
@@ -208,10 +238,10 @@ def main() -> int:
         images = images.to(device, non_blocking=non_blocking)
         target = target.to(device, non_blocking=non_blocking)
         optimizer.zero_grad(set_to_none=True)
-        with amp_context():
+        with _autocast_context(device, amp_enabled):
             output = model(images)
             loss = criterion(output, target)
-        if amp_enabled:
+        if scaler is not None:
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -282,7 +312,7 @@ def main() -> int:
         "batch_size": args.batch_size,
         "warmup_iters": args.warmup_iters,
         "measured_iters": args.iters,
-        "precision": "amp" if amp_enabled else "fp32",
+        "precision": "amp" if amp_enabled and scaler is not None else "fp32",
         "lr": args.lr,
         "momentum": args.momentum,
         "weight_decay": args.weight_decay,

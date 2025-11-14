@@ -82,6 +82,9 @@ source env/venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt  # torch+torchvision/torchaudio pinned for portability
 
+# or run ./scripts/setup_env.sh (creates env/venv, installs requirements)
+./scripts/setup_env.sh
+
 # bring in your driver (already present in this repo):
 # code/run_train.py
 
