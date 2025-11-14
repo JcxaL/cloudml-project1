@@ -9,11 +9,11 @@
 - Extras (gVNIC, container ids, storage notes): 
 
 ## Local CPU or Apple Silicon
-- OS / Kernel: 
-- Python / PyTorch: 
-- CPU / RAM: 
-- Perf tooling (perf, Instruments, etc.): 
-- Command lines: 
+- OS / Kernel: macOS 26.1 (Darwin 25.1.0)
+- Python / PyTorch: Python 3.11.6 / torch 2.9.0
+- CPU / RAM: Apple M3 Max / 64 GB unified memory
+- Perf tooling (perf, Instruments, etc.): /usr/bin/time -l, Instruments→Metal System Trace (planned)
+- Command lines: `/usr/bin/time -l python code/run_train.py --data data/imagenet-mini --arch resnet50 --batch-size 8 --warmup-iters 1 --iters 2 --workers 0 --precision fp32 --backend mps`
 
 ## GCP GPU VM
 - Project / Region / Zone: 
