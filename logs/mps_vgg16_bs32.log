@@ -1,0 +1,66 @@
+[run_repeat] Starting mac_mps_vgg16_fp32_bs32_r1 (log: mac_mps_vgg16_fp32_bs32_r1_20251114_120251.txt)
+MEASURED_SEC=57.281226 IMGS_PER_SEC=55.86 BATCH=32 ARCH=vgg16 BACKEND=MPS
+       66.12 real        14.46 user         7.95 sys
+          1296596992  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               87104  page reclaims
+                  11  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+              577774  involuntary context switches
+        146868268680  instructions retired
+         66011722209  cycles elapsed
+          6297438080  peak memory footprint
+[run_repeat] Finished mac_mps_vgg16_fp32_bs32_r1
+
+[run_repeat] Starting mac_mps_vgg16_fp32_bs32_r2 (log: mac_mps_vgg16_fp32_bs32_r2_20251114_120357.txt)
+MEASURED_SEC=50.839744 IMGS_PER_SEC=62.94 BATCH=32 ARCH=vgg16 BACKEND=MPS
+       59.31 real        14.23 user         8.02 sys
+          1320140800  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               88512  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+              574544  involuntary context switches
+        147112625288  instructions retired
+         65198865668  cycles elapsed
+          6297978752  peak memory footprint
+[run_repeat] Finished mac_mps_vgg16_fp32_bs32_r2
+
+[run_repeat] Starting mac_mps_vgg16_fp32_bs32_r3 (log: mac_mps_vgg16_fp32_bs32_r3_20251114_120456.txt)
+MEASURED_SEC=38.830974 IMGS_PER_SEC=82.41 BATCH=32 ARCH=vgg16 BACKEND=MPS
+       45.56 real        13.01 user         7.78 sys
+          1256423424  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84609  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+              576076  involuntary context switches
+        147822575626  instructions retired
+         58981907312  cycles elapsed
+          6298322768  peak memory footprint
+[run_repeat] Finished mac_mps_vgg16_fp32_bs32_r3
+

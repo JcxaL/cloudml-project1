@@ -428,7 +428,8 @@ ncu --profile-from-start off --target-processes all \
 - `docs/run_matrix.md` — explicit run matrix (models × batch sizes × envs × repeats) for experiment design.
 - `scripts/setup_env.sh` — reproducible venv bootstrap for macOS/Linux/WSL/cloud.
 - `scripts/model_complexity.py` — dumps per-model parameter/activation summaries and JSON used for CPU/MPS roofline points.
-- `scripts/run_repeat.sh` — wraps `/usr/bin/time` runs with consistent labels (set RUNS/LABEL env vars).
+- `scripts/run_repeat.sh` — wraps time measurements cross-platform (auto picks /usr/bin/time -v or -l).
+- `scripts/run_mac_matrix.sh` — helper to execute the macOS CPU/MPS matrix via run_repeat (defaults to RUNS=3).
 - `analysis/peaks.json` — fill with per-precision peak GFLOP/s + GB/s per environment before running `analysis/roofline.py`.
 - `analysis/roofline.py` — combines `logs/metrics.csv`, Nsight CSV logs, and complexity data into `analysis/roofline_points.csv`.
 - `analysis/plot_roofline.py` — renders roofline_{env}.png from `analysis/roofline_points.csv`.
