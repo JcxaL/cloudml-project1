@@ -18,3 +18,5 @@ code/train_imagenet_src
 
 # macOS cruft
 .DS_Store
+*.zip
+data/imagenet-mini.zip
