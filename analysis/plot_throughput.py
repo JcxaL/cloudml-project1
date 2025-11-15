@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate throughput vs. batch plots per environment (and host) from logs/metrics.csv."""
+"""Generate throughput vs. batch plots per environment (and optional host) from logs/metrics.csv."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import re
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
@@ -18,16 +17,21 @@ ENV_HOST_VIEW = {
     "rtx4090": ["RTX4090"],
 }
 
-MARKERS = {"resnet50": "o", "vgg16": "s", "mobilenet_v2": "^"}
-LINESTYLES = {"fp32": "-", "amp": "--"}
+COLOR_MAP = {
+    "resnet50": "#1f77b4",
+    "vgg16": "#2ca02c",
+    "mobilenet_v2": "#ff7f0e",
+}
 DISPLAY_ARCH = {"resnet50": "ResNet-50", "vgg16": "VGG-16", "mobilenet_v2": "MobileNetV2"}
+PRECISION_MARKERS = {"fp32": "o", "amp": "s"}
+PRECISION_LINESTYLES = {"fp32": "-", "amp": "--"}
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=Path("logs/metrics.csv"))
     parser.add_argument("--outdir", type=Path, default=Path("figures"))
-    parser.add_argument("--envs", nargs="*", help="Optional list of env keys to plot (default: infer)")
+    parser.add_argument("--envs", nargs="*", help="Optional list of env keys to plot (default: infer)" )
     return parser.parse_args()
 
 
@@ -73,32 +77,20 @@ def load_data(path: Path) -> pd.DataFrame:
     return df
 
 
-def size_for_batch(batch: int) -> float:
-    return 4.0 + math.sqrt(batch)
+def marker_size(batch: int) -> float:
+    return (4.0 + math.sqrt(batch)) * 6
 
 
-def color_map_for_hosts(hosts: list[str]) -> dict[str, str]:
-    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", ["C0", "C1", "C2", "C3", "C4"])
-    mapping: dict[str, str] = {}
-    for idx, host in enumerate(sorted(set(hosts))):
-        mapping[host] = colors[idx % len(colors)]
-    return mapping
-
-
-def legend_handles(color_map, hosts_present, arches_present, precisions_present):
+def legend_handles(arches, precisions):
     model_handles = [
-        Line2D([0], [0], marker=MARKERS.get(a, "o"), linestyle="", color="k", label=DISPLAY_ARCH.get(a, a))
-        for a in sorted(arches_present)
+        Line2D([0], [0], color=COLOR_MAP.get(a, "C0"), lw=2, label=DISPLAY_ARCH.get(a, a))
+        for a in sorted(arches)
     ]
     precision_handles = [
-        Line2D([0], [0], linestyle=LINESTYLES.get(p, "-"), color="k", label=p.upper())
-        for p in sorted(precisions_present)
+        Line2D([0], [0], marker=PRECISION_MARKERS.get(p, "o"), linestyle="", color="k", label=p.upper())
+        for p in sorted(precisions)
     ]
-    host_handles = [
-        Line2D([0], [0], color=color_map[h], lw=2, label=h)
-        for h in sorted(hosts_present)
-    ]
-    return model_handles, precision_handles, host_handles
+    return model_handles, precision_handles
 
 
 def plot_env(df: pd.DataFrame, env: str, outdir: Path, host_filter: str | None = None) -> None:
@@ -109,40 +101,36 @@ def plot_env(df: pd.DataFrame, env: str, outdir: Path, host_filter: str | None =
         return
 
     agg = (
-        subset.groupby(["host", "arch", "precision", "batch_size"])["images_per_sec"]
+        subset.groupby(["arch", "precision", "batch_size"])["images_per_sec"]
         .agg(["mean", "std", "count"])
         .reset_index()
     )
-    agg["std"] = agg["std"].fillna(0.0)
-
-    color_map = color_map_for_hosts(agg["host"].tolist())
 
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
-    for (host, arch, precision), group in agg.groupby(["host", "arch", "precision"]):
+    for (arch, precision), group in agg.groupby(["arch", "precision"]):
         group = group.sort_values("batch_size")
         x = group["batch_size"].to_numpy()
         y = group["mean"].to_numpy()
         yerr = group["std"].to_numpy()
-        ax.errorbar(
-            x,
-            y,
-            yerr=yerr,
-            fmt=MARKERS.get(arch, "o"),
-            linestyle=LINESTYLES.get(precision, "-"),
-            color=color_map.get(host, "C0"),
-            capsize=3,
-            linewidth=1.4,
-            markersize=5,
-        )
-        for xi, yi, bs in zip(x, y, group["batch_size"]):
-            ax.plot(
+        color = COLOR_MAP.get(arch, "C0")
+        linestyle = PRECISION_LINESTYLES.get(precision, "-")
+
+        if len(group) > 1:
+            ax.plot(x, y, color=color, linestyle=linestyle, linewidth=1.4)
+
+        for xi, yi, sd, cnt, bs in zip(x, y, yerr, group["count"], group["batch_size"]):
+            ax.scatter(
                 xi,
                 yi,
-                marker=MARKERS.get(arch, "o"),
-                color=color_map.get(host, "C0"),
-                linestyle="",
-                markersize=size_for_batch(int(bs)) * 0.25,
+                marker=PRECISION_MARKERS.get(precision, "o"),
+                color=color,
+                s=marker_size(int(bs)),
+                edgecolor="white",
+                linewidth=0.5,
+                zorder=3,
             )
+            if cnt >= 3 and sd > 0:
+                ax.errorbar(xi, yi, yerr=sd, color=color, capsize=3, linewidth=1.0, linestyle="none")
 
     title = f"Throughput vs Batch ({env})"
     if host_filter:
@@ -155,14 +143,10 @@ def plot_env(df: pd.DataFrame, env: str, outdir: Path, host_filter: str | None =
     ax.margins(y=0.10)
     ax.grid(True, which="both", alpha=0.3)
 
-    model_handles, precision_handles, host_handles = legend_handles(
-        color_map, agg["host"].unique(), agg["arch"].unique(), agg["precision"].unique()
-    )
+    model_handles, precision_handles = legend_handles(agg["arch"].unique(), agg["precision"].unique())
     leg1 = ax.legend(model_handles, [h.get_label() for h in model_handles], title="Model", loc="upper left", bbox_to_anchor=(1.02, 1.0), frameon=False)
     leg2 = ax.legend(precision_handles, [h.get_label() for h in precision_handles], title="Precision", loc="upper left", bbox_to_anchor=(1.02, 0.7), frameon=False)
-    leg3 = ax.legend(host_handles, [h.get_label() for h in host_handles], title="Host", loc="upper left", bbox_to_anchor=(1.02, 0.4), frameon=False)
     ax.add_artist(leg1)
-    ax.add_artist(leg2)
 
     outdir.mkdir(parents=True, exist_ok=True)
     suffix = f"_{safe_name(host_filter)}" if host_filter else ""

@@ -90,12 +90,16 @@ Host‑focused CUDA views (same encodings; color = model, marker = precision, li
 ![Throughput — GCP L4 (p1-gpu-l4)](figures/throughput_gcp_l4_p1-gpu-l4.png){ width=60% }
 *(Legends show model / precision / host separately; error bands = ±1 sd where repeats ≥3.)*
 
+*(Colors map to models, marker shapes to precision, and marker size to √batch; single-batch series are plotted as standalone markers without connecting lines.)*
+
+*How to read these throughput plots.* Lines show images/sec vs batch. Color encodes the model, marker shape denotes FP32 vs AMP, and marker size scales with √batch. A single marker means only one batch was profiled; error bars (where present) show ±1 sd across repeats.
+
 **Highlights (representative points from my logs):**
 
-* **Mac CPU.** ResNet‑50 ~5 img/s at bs16; VGG‑16 <4 img/s at bs16; MobileNetV2 < 3 img/s even at bs64.
-* **Mac MPS.** ResNet‑50 ≈100 img/s at bs32; VGG‑16 ≈146 img/s at bs64; MobileNetV2 ≈180 img/s at bs64—about **20×** the CPU baseline.
-* **GCP L4 (CUDA).** ResNet‑50 ≈205 img/s (FP32, bs128) and ≈380 img/s (AMP, bs256). MobileNetV2 ≈363 img/s (bs128). VGG‑16 ≈146 img/s (bs64).
-* **Local RTX 4090.** Prior logs show higher absolute ceilings than L4 with the same scaling trends; I fold those into the CUDA discussion and roofline classification.
+* * **Mac CPU.** Throughput climbs modestly from bs16→32 (ResNet‑50 +26%) then flattens; VGG‑16 is slower despite higher FLOPs, indicating DRAM pressure/scheduler noise. MobileNetV2 benefits most from batching, but remains <3 img/s. Net: the CPU roofline is firmly bandwidth-bound.
+* **Mac MPS.** ≈20× faster than CPU; ResNet‑50 peaks near bs32–64 (~100 img/s) before UMA bandwidth and the input queue limit gains. VGG‑16 plateaus earlier; MobileNetV2 is already near its asymptote by bs32. Net: compute-leaning at moderate batch, so focus on the input path.
+* **GCP L4 (CUDA).** AMP + channels-last lifts ResNet‑50 from ~205 img/s (FP32, bs128) to ~380 img/s (AMP, bs256). MobileNetV2 tops out near bs128; bigger batches aren’t free. Net: pick batch near the throughput knee, don’t just max it.
+* **Local RTX 4090.** Same qualitative behavior as L4 with higher ceilings; the fp32 bs256 cliff flags a resource/pipeline issue. AMP keeps a healthy lead at practical batches.
 
 ### 4.2 Variability & pipeline checks
 
@@ -132,20 +136,9 @@ Peaks come from vendor guidance and simple microbenchmarks (GEMM for GFLOP/s; ST
 
 ### 5.2 Attained and coordinate construction
 
-* **Attained GFLOP/s** per run is computed as:
-
-$$
-\text{attained} = \frac{\text{FLOPs}}{\text{elapsed\_sec}} \times 10^{-9}, \qquad \text{FLOPs} \approx 2 \times \text{forward\_MACs} \times \text{batch} \times \text{measured\_iters}.
-$$
-
-* **Preferred x‑axis (with Nsight):** FLOPs divided by measured DRAM bytes (`dram__bytes_read.sum + dram__bytes_write.sum`).
-* **Bandwidth‑based coordinate (when bytes are missing):** use the conservative lower‑bound intensity
-
-$$
-\text{intensity}_{\text{lb}} = \frac{\text{attained}}{\text{peak\_gbps}},
-$$
-
-  and, when a point achieves ≥70% of `peak_gflops`, clamp the coordinate to at least the intensity knee $\left(\frac{\text{peak\_gflops}}{\text{peak\_gbps}}\right)$. Each CUDA point derived this way is labeled **bandwidth‑estimated**; this is exactly the fallback discussed in lecture when hardware counters are unavailable.
+* **Attained GFLOP/s** per run is computed as `attained = FLOPs / elapsed_sec * 1e-9`, where `FLOPs ≈ 2 × forward_MACs × batch × measured_iters`.
+* **Preferred x-axis (with Nsight):** FLOPs divided by measured DRAM bytes (`dram__bytes_read.sum + dram__bytes_write.sum`).
+* **Bandwidth-based coordinate (when bytes are missing):** use the conservative lower-bound intensity `intensity_lb = attained / peak_gbps`, and when a point achieves ≥70% of `peak_gflops`, clamp the coordinate to at least the intensity knee `peak_gflops / peak_gbps`. Each CUDA point derived this way is labeled **bandwidth-estimated**; this is exactly the fallback discussed in lecture when hardware counters are unavailable.
 
 **Table 3 — Representative roofline coordinates for ResNet-50 (means across 3–7 runs from `analysis/roofline_points.csv`).**
 
@@ -164,6 +157,8 @@ CUDA rows use the conservative **bandwidth-estimated** coordinate from Section 5
 ![Roofline — Mac CPU](figures/roofline_cpu.png){ width=55% }
 ![Roofline — Mac MPS](figures/roofline_mps.png){ width=55% }
 
+*How to read the rooflines.* The dashed diagonal is the memory roof (peak bandwidth × intensity), the dashed horizontal is the compute roof (peak GFLOP/s), and the dotted vertical shows the knee (where the bound flips). Filled markers use Nsight bytes; hollow markers use the conservative bandwidth-based estimate. Points hugging the diagonal are bandwidth-limited; those near the horizontal roof are compute-limited.
+
 Bandwidth‑estimated CUDA views (Nsight bytes pending):
 
 ![Roofline — GCP L4](figures/roofline_gcp.png){ width=55% }
@@ -174,8 +169,6 @@ Bandwidth‑estimated CUDA views (Nsight bytes pending):
 **Mac CPU.** Points cluster near the **memory roof** across models; scaling batch helps modestly before scheduler and memory effects dominate.
 **Mac MPS.** At bs32+, **ResNet‑50** and **VGG‑16** drift near the **compute roof**; **MobileNetV2** stays lower in arithmetic intensity and responds best to batching and input-queue tuning.
 **CUDA (L4, RTX 4090).** Using the bandwidth‑estimated coordinate, **ResNet‑50 + AMP** lands near the **compute roof** at moderate/large batches (tensor‑core utilization). **VGG‑16** trends more **bandwidth‑leaning** (large activations). **MobileNetV2** is launch/pipeline‑sensitive at small batches.
-
-I did **not** fabricate Nsight counters. The estimator preserves physical validity: no point exceeds the minimum of compute and memory roofs at its coordinate. When bytes become available, updating plots is a one‑command aggregation refresh.
 
 ---
 
