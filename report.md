@@ -134,16 +134,18 @@ Peaks come from vendor guidance and simple microbenchmarks (GEMM for GFLOP/s; ST
 
 * **Attained GFLOP/s** per run is computed as:
 
-\[
-\text{attained} = \frac{\text{FLOPs}}{\text{elapsed\_sec}} \times 10^{-9}, \qquad \text{FLOPs} \approx 2 \times \text{forward MACs} \times \text{batch} \times \text{measured iters}.\]
+$$
+\text{attained} = \frac{\text{FLOPs}}{\text{elapsed\_sec}} \times 10^{-9}, \qquad \text{FLOPs} \approx 2 \times \text{forward\_MACs} \times \text{batch} \times \text{measured\_iters}.
+$$
 
 * **Preferred x‑axis (with Nsight):** FLOPs divided by measured DRAM bytes (`dram__bytes_read.sum + dram__bytes_write.sum`).
 * **Bandwidth‑based coordinate (when bytes are missing):** use the conservative lower‑bound intensity
 
-\[
-\text{intensity}_{\text{lb}} = \frac{\text{attained}}{\text{peak\_gbps}},\]
+$$
+\text{intensity}_{\text{lb}} = \frac{\text{attained}}{\text{peak\_gbps}},
+$$
 
-  and, when a point achieves ≥70% of `peak_gflops`, clamp the coordinate to at least the intensity knee (\(\text{peak\_gflops} / \text{peak\_gbps}\)). Each CUDA point derived this way is labeled **bandwidth‑estimated**; this is exactly the fallback discussed in lecture when hardware counters are unavailable.
+  and, when a point achieves ≥70% of `peak_gflops`, clamp the coordinate to at least the intensity knee $\left(\frac{\text{peak\_gflops}}{\text{peak\_gbps}}\right)$. Each CUDA point derived this way is labeled **bandwidth‑estimated**; this is exactly the fallback discussed in lecture when hardware counters are unavailable.
 
 **Table 3 — Representative roofline coordinates for ResNet-50 (means across 3–7 runs from `analysis/roofline_points.csv`).**
 
