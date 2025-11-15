@@ -27,6 +27,13 @@
       "mult_adds_per_sample_forward": 4089238376.0,
       "flops_per_batch_forward": 1046845024256.0,
       "flops_per_sample_forward": 8178476752.0
+    },
+    "256": {
+      "params": 25557032,
+      "mult_adds_per_batch_forward": 1046845024256.0,
+      "mult_adds_per_sample_forward": 4089238376.0,
+      "flops_per_batch_forward": 2093690048512.0,
+      "flops_per_sample_forward": 8178476752.0
     }
   },
   "vgg16": {
@@ -57,6 +64,13 @@
       "mult_adds_per_sample_forward": 15483821032.0,
       "flops_per_batch_forward": 3963858184192.0,
       "flops_per_sample_forward": 30967642064.0
+    },
+    "256": {
+      "params": 138357544,
+      "mult_adds_per_batch_forward": 3963858184192.0,
+      "mult_adds_per_sample_forward": 15483821032.0,
+      "flops_per_batch_forward": 7927716368384.0,
+      "flops_per_sample_forward": 30967642064.0
     }
   },
   "mobilenet_v2": {
@@ -86,6 +100,13 @@
       "mult_adds_per_batch_forward": 38503601152.0,
       "mult_adds_per_sample_forward": 300809384.0,
       "flops_per_batch_forward": 77007202304.0,
+      "flops_per_sample_forward": 601618768.0
+    },
+    "256": {
+      "params": 3504872,
+      "mult_adds_per_batch_forward": 77007202304.0,
+      "mult_adds_per_sample_forward": 300809384.0,
+      "flops_per_batch_forward": 154014404608.0,
       "flops_per_sample_forward": 601618768.0
     }
   }

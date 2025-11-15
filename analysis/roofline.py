@@ -184,15 +184,14 @@ def main() -> None:
                 write_bytes = ncu_vals.get("dram__bytes_write.sum")
                 if read_bytes is not None and write_bytes is not None:
                     dram_bytes = read_bytes + write_bytes
-        else:
-            model = row["arch"]
-            batch_key = str(row["batch_size"])
-            model_entry = complexity.get(model, {})
-            batch_entry = model_entry.get(batch_key)
-            if batch_entry is not None:
-                per_iter = estimate_training_flops_per_iter(batch_entry, row["batch_size"], TRAIN_FACTOR)
-                if per_iter is not None:
-                    flops = per_iter * row["measured_iters"]
+        model = row["arch"]
+        batch_key = str(row["batch_size"])
+        model_entry = complexity.get(model, {})
+        batch_entry = model_entry.get(batch_key)
+        if flops is None and batch_entry is not None:
+            per_iter = estimate_training_flops_per_iter(batch_entry, row["batch_size"], TRAIN_FACTOR)
+            if per_iter is not None:
+                flops = per_iter * row["measured_iters"]
 
         if flops is None or row["elapsed_sec"] <= 0:
             continue

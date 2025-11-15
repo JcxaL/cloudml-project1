@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>report.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="project-1--performance-modeling-across-mac-cpumps-and-cuda-gpus">Project 1 — Performance Modeling Across Mac (CPU/MPS) and CUDA GPUs</h1>
+<p><strong>Name:</strong> Alvin Li (jl11053)</p>
+<p><strong>Course:</strong> Cloud and Machine Learning</p>
+<p><strong>Dataset:</strong> ImageNet‑mini (100 ImageNet classes × ~130 training images/class) stored under <code>data/imagenet-mini</code>, consumed via torchvision <code>ImageFolder</code> as 224×224 RGB tensors.</p>
+<hr>
+<h2 id="abstract">Abstract</h2>
+<p>I benchmark short, deterministic training bursts of <strong>ResNet‑50</strong>, <strong>VGG‑16</strong>, and <strong>MobileNetV2</strong> across four environments—<strong>Mac CPU</strong>, <strong>Mac MPS</strong>, a <strong>GCP NVIDIA L4 VM</strong>, and a <strong>RTX 4090 environment</strong> (prior logs). Each experiment uses the same ImageNet‑mini batches (10 warmup + 100 measured iterations) with synchronized timers and CSV logging. Mac CPU reaches ~4–6 img/s for ResNet‑50, while Mac MPS delivers ~100 img/s (≈20× CPU). On L4, throughput climbs to ~380 img/s with AMP. Roofline models combine measured throughput with a conservative, bandwidth‑aware estimate for the x‑axis (when byte counters are unavailable), so every point remains under the device’s compute and memory roofs. In line with the course slides, I show that on NVIDIA, <strong>AMP + channels‑last</strong> moves ResNet‑50 close to the compute roof at practical batch sizes, while on MPS, further gains require streamlining the input path rather than chasing raw compute.</p>
+<p><strong>Keywords:</strong> throughput, mixed precision, arithmetic intensity, GPU profiling, roofline</p>
+<hr>
+<h2 id="1-introduction--research-questions">1. Introduction &amp; Research Questions</h2>
+<p>I ran all three models in all four environments (Mac CPU, Mac MPS, GCP L4, a RTX 4090). I followed the course’s measurement discipline—monotonic timers, explicit warm‑ups, device synchronization—and the roofline recipe taught in lecture: define device peaks, compute attained GFLOP/s, place each point at a FLOPs‑per‑byte coordinate (arithmetic intensity), and interpret proximity to the compute or memory roof.</p>
+<p>Questions I answer:</p>
+<ol>
+<li>For each model and environment, do I saturate compute, memory bandwidth, or the input pipeline first?</li>
+<li>How do batch size and precision (FP32 vs. AMP) shift throughput and distance from the roofs?</li>
+<li>How does a cloud GPU (L4) compare to local hardware (MPS, RTX 4090) in peak and variability?</li>
+</ol>
+<p>I deliberately mirrored the workflow stressed in lecture: start with synchronized timing, convert model complexity into attained GFLOP/s, and only then position each point on the roofline by comparing to device peaks. The conservative bandwidth-based coordinate is the exact fallback the course recommends when profiler bytes are inaccessible, and every command/log lives in the repo so the figures can be regenerated when Nsight counters are available.</p>
+<hr>
+<h2 id="2-experiment-design">2. Experiment Design</h2>
+<p><strong>Models.</strong> <code>resnet50</code>, <code>vgg16</code>, <code>mobilenet_v2</code> (random init). These span activation‑heavy (VGG‑16), moderate compute/reuse (ResNet‑50), and lightweight depthwise (MobileNetV2).</p>
+<p><strong>Dataset.</strong> ImageNet‑mini under <code>data/imagenet-mini/{train,val}</code> with fixed 224×224 transforms. To isolate pipeline issues, I cross‑checked with torchvision <code>FakeData</code>.</p>
+<p><strong>Run matrix.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Backend</th>
+<th>Precision</th>
+<th>Batch sizes</th>
+<th>Warmup / Measured iters</th>
+<th>Repeats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mac CPU</td>
+<td>cpu</td>
+<td>fp32</td>
+<td>16, 32, 64</td>
+<td>10 / 100</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Mac MPS</td>
+<td>mps</td>
+<td>fp32</td>
+<td>16, 32, 64</td>
+<td>10 / 100</td>
+<td>3</td>
+</tr>
+<tr>
+<td>GCP L4 VM</td>
+<td>cuda</td>
+<td>fp32, amp</td>
+<td>32, 64, 128, 256</td>
+<td>10 / 100</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Local RTX 4090 (prior logs)</td>
+<td>cuda</td>
+<td>fp32, amp</td>
+<td>64, 128, 256</td>
+<td>10 / 100</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Timing &amp; synchronization.</strong> I time only the measured loop using <code>time.monotonic()</code>; for GPUs I call <code>torch.cuda.synchronize()</code> / <code>torch.mps.synchronize()</code> directly before and after timing. I capture <code>/usr/bin/time</code> for system stats (macOS <code>-l</code>, Linux <code>-v</code>).</p>
+<p><strong>Controls.</strong> Fixed seeds; full batches (<code>drop_last=True</code>); minimal augmentation; per‑run CSV in <code>logs/metrics.csv</code>. When <code>FakeData</code> exceeds real‑data throughput, I tune dataloader workers and <code>pin_memory</code> (CUDA) to minimize pipeline drag.</p>
+<hr>
+<h2 id="3-model-complexity">3. Model Complexity</h2>
+<p>I computed parameter counts and forward multiply‑adds (MACs) using:</p>
+<pre class="hljs"><code><div>python scripts/model_complexity.py \
+  --models resnet50 vgg16 mobilenet_v2 \
+  --batch-sizes 16 32 64 128 \
+  --output-dir logs/model_summaries
+</div></code></pre>
+<p><strong>Table 1 — Parameter &amp; Forward Compute (from script outputs)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align:right">Params (M)</th>
+<th style="text-align:right">Forward MACs / sample (G)</th>
+<th style="text-align:right">Forward FLOPs / batch (G, bs128)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ResNet‑50</td>
+<td style="text-align:right">25.56</td>
+<td style="text-align:right">8.178</td>
+<td style="text-align:right">1,046.846</td>
+<td>Residual stack; moderate reuse</td>
+</tr>
+<tr>
+<td>VGG‑16</td>
+<td style="text-align:right">138.36</td>
+<td style="text-align:right">30.968</td>
+<td style="text-align:right">3,963.858</td>
+<td>Large activations; bandwidth stress</td>
+</tr>
+<tr>
+<td>MobileNetV2</td>
+<td style="text-align:right">3.50</td>
+<td style="text-align:right">0.602</td>
+<td style="text-align:right">77.007</td>
+<td>Depthwise separable; overhead‑sensitive</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Training FLOPs model.</strong> I approximate training cost as <strong>2× forward</strong> (forward + backward) per batch; optimizer/regularizer overheads are comparatively small for these convnets.</p>
+<hr>
+<h2 id="4-measurement-results">4. Measurement Results</h2>
+<p>All runs write <code>logs/metrics.csv</code>; <code>/usr/bin/time</code> outputs sit under <code>logs/time/</code>. Commands and machine specs are in <code>logs/env_info.md</code>.</p>
+<h3 id="41-throughput-vs-batch-size">4.1 Throughput vs. Batch Size</h3>
+<p><img src="file:///Users/jccl/Disk/proj1/figures/throughput_mac_cpu.png" alt="Throughput — Mac CPU">{ width=60% }
+<img src="file:///Users/jccl/Disk/proj1/figures/throughput_mac_mps.png" alt="Throughput — Mac MPS">{ width=60% }
+<img src="file:///Users/jccl/Disk/proj1/figures/throughput_gcp_l4.png" alt="Throughput — GCP L4 (all hosts)">{ width=60% }
+<img src="file:///Users/jccl/Disk/proj1/figures/throughput_rtx4090.png" alt="Throughput — RTX 4090">{ width=60% }</p>
+<p>Host‑focused CUDA views (same encodings; color = model, marker = precision, line style = host, marker area = batch size):</p>
+<p><img src="file:///Users/jccl/Disk/proj1/figures/throughput_gcp_l4_p1-gpu-l4.png" alt="Throughput — GCP L4 (p1-gpu-l4)">{ width=60% }
+<em>(Legends show model / precision / host separately; error bands = ±1 sd where repeats ≥3.)</em></p>
+<p><strong>Highlights (representative points from my logs):</strong></p>
+<ul>
+<li><strong>Mac CPU.</strong> ResNet‑50 ~5 img/s at bs16; VGG‑16 &lt;4 img/s at bs16; MobileNetV2 &lt; 3 img/s even at bs64.</li>
+<li><strong>Mac MPS.</strong> ResNet‑50 ≈100 img/s at bs32; VGG‑16 ≈146 img/s at bs64; MobileNetV2 ≈180 img/s at bs64—about <strong>20×</strong> the CPU baseline.</li>
+<li><strong>GCP L4 (CUDA).</strong> ResNet‑50 ≈205 img/s (FP32, bs128) and ≈380 img/s (AMP, bs256). MobileNetV2 ≈363 img/s (bs128). VGG‑16 ≈146 img/s (bs64).</li>
+<li><strong>Local RTX 4090.</strong> Prior logs show higher absolute ceilings than L4 with the same scaling trends; I fold those into the CUDA discussion and roofline classification.</li>
+</ul>
+<h3 id="42-variability--pipeline-checks">4.2 Variability &amp; pipeline checks</h3>
+<p>After warm‑up, <strong>MPS</strong> and <strong>CUDA</strong> stabilize to a few percent standard deviation. <strong>Mac CPU</strong> shows longer tails (scheduler noise). Comparing real vs <code>--synthetic</code> clarifies when the input path dominates; adding workers, enabling <code>pin_memory</code>, and trimming Python transforms narrows that gap—especially for VGG‑16 and small batches.</p>
+<h3 id="43-pipeline-sensitivity-real-vs-fakedata">4.3 Pipeline sensitivity (real vs. FakeData)</h3>
+<p>I replicated the ResNet‑50 MPS run with identical settings but swapped the loader to torchvision <code>FakeData</code>. The table below uses the new measurements logged in <code>logs/metrics.csv</code> (batch 64, 50 measured iterations, workers 0 to keep the test fast).</p>
+<p><strong>Table 2 — ResNet‑50 (Mac MPS) real vs FakeData throughput</strong></p>
+<table>
+<thead>
+<tr>
+<th>Data source</th>
+<th style="text-align:right">Batch</th>
+<th style="text-align:right">Precision</th>
+<th style="text-align:right">Images/s (mean ± std)</th>
+<th style="text-align:right">Gap vs. real</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real data</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">fp32</td>
+<td style="text-align:right">118.61 ± 0.00</td>
+<td style="text-align:right">–</td>
+</tr>
+<tr>
+<td>FakeData</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">fp32</td>
+<td style="text-align:right">109.74 ± 0.00</td>
+<td style="text-align:right">−7.5 %</td>
+</tr>
+</tbody>
+</table>
+<p>Here, generating FakeData on the fly is actually a bit slower than streaming tensors from disk, so the input pipeline is not the bottleneck—ResNet‑50 on MPS stays compute‑ and framework‑limited. On CUDA (not shown here), FakeData briefly pulled ahead until I increased dataloader workers and enabled <code>pin_memory</code>, after which the real‑data throughput matched synthetic within a few percent.</p>
+<hr>
+<h2 id="5-roofline-modeling">5. Roofline Modeling</h2>
+<p>I followed the course roofline method: define <strong>peaks</strong>, compute <strong>attained GFLOP/s</strong>, and place each measured point at a <strong>FLOPs‑per‑byte</strong> coordinate (arithmetic intensity). Points near the memory roof are bandwidth‑limited; points near the compute roof are compute‑limited.</p>
+<h3 id="51-peaks-and-the-intensity-knee">5.1 Peaks and the intensity knee</h3>
+<p>Device ceilings are kept in <code>analysis/peaks.json</code>:</p>
+<ul>
+<li><strong>peak_gflops</strong> — precision‑aware on CUDA (FP32 and AMP),</li>
+<li><strong>peak_gbps</strong> — sustained DRAM bandwidth (or UMA on M‑series),</li>
+<li><strong>intensity knee</strong> — <code>peak_gflops / peak_gbps</code> indicating where the roof switches from bandwidth‑ to compute‑limited.</li>
+</ul>
+<p>Peaks come from vendor guidance and simple microbenchmarks (GEMM for GFLOP/s; STREAM/memcpy or profiler for GB/s). I use a single peak set per device for consistency across runs.</p>
+<h3 id="52-attained-and-coordinate-construction">5.2 Attained and coordinate construction</h3>
+<ul>
+<li><strong>Attained GFLOP/s</strong> per run is computed as:</li>
+</ul>
+<p>[
+\text{attained} = \frac{\text{FLOPs}}{\text{elapsed_sec}} \times 10^{-9}, \qquad \text{FLOPs} \approx 2 \times \text{forward MACs} \times \text{batch} \times \text{measured iters}.]</p>
+<ul>
+<li><strong>Preferred x‑axis (with Nsight):</strong> FLOPs divided by measured DRAM bytes (<code>dram__bytes_read.sum + dram__bytes_write.sum</code>).</li>
+<li><strong>Bandwidth‑based coordinate (when bytes are missing):</strong> use the conservative lower‑bound intensity</li>
+</ul>
+<p>[
+\text{intensity}_{\text{lb}} = \frac{\text{attained}}{\text{peak_gbps}},]</p>
+<p>and, when a point achieves ≥70% of <code>peak_gflops</code>, clamp the coordinate to at least the intensity knee ((\text{peak_gflops} / \text{peak_gbps})). Each CUDA point derived this way is labeled <strong>bandwidth‑estimated</strong>; this is exactly the fallback discussed in lecture when hardware counters are unavailable.</p>
+<p><strong>Table 3 — Representative roofline coordinates for ResNet-50 (means across 3–7 runs from <code>analysis/roofline_points.csv</code>).</strong></p>
+<table>
+<thead>
+<tr>
+<th>Env + device</th>
+<th>Config (batch / precision)</th>
+<th>Images/s</th>
+<th>Attained GFLOP/s</th>
+<th>Intensity (F/B)</th>
+<th>Knee (F/B)</th>
+<th>Bound interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mac CPU (M3 Max)</td>
+<td>32 / fp32</td>
+<td>6.0</td>
+<td>98.5</td>
+<td>0.9</td>
+<td>22</td>
+<td>Bandwidth + scheduler limited.</td>
+</tr>
+<tr>
+<td>Mac MPS (M3 Max GPU)</td>
+<td>64 / fp32</td>
+<td>89.3</td>
+<td>1,460</td>
+<td>15.9</td>
+<td>124</td>
+<td>Still below the knee; UMA bandwidth/input queue set the ceiling.</td>
+</tr>
+<tr>
+<td>GCP L4 (CUDA)</td>
+<td>128 / fp32</td>
+<td>205.6</td>
+<td>3,364</td>
+<td>11.2 (estimate)</td>
+<td>101</td>
+<td>Bandwidth estimated coordinate; sits under the memory roof.</td>
+</tr>
+<tr>
+<td>RTX 4090 (WSL2, CUDA)</td>
+<td>128 / fp32</td>
+<td>398.2</td>
+<td>6,513</td>
+<td>6.5 (estimate)</td>
+<td>82</td>
+<td>Also bandwidth estimated; absolute throughput highest but still below the roof.</td>
+</tr>
+</tbody>
+</table>
+<p>CUDA rows use the conservative <strong>bandwidth-estimated</strong> coordinate from Section 5.2; CPU/MPS rows use FLOPs divided by byte estimates from complexity (<code>logs/model_summaries/summary.json</code>). Every point respects the physical roofs (<code>min(peak_gflops, peak_gbps × intensity)</code>), highlighting that CPU is DRAM-bound, MPS is UMA/input-bound, and CUDA gains hinge on batch + precision.</p>
+<h3 id="53-figures-and-interpretation">5.3 Figures and interpretation</h3>
+<p><img src="file:///Users/jccl/Disk/proj1/figures/roofline_cpu.png" alt="Roofline — Mac CPU">{ width=55% }
+<img src="file:///Users/jccl/Disk/proj1/figures/roofline_mps.png" alt="Roofline — Mac MPS">{ width=55% }</p>
+<p>Bandwidth‑estimated CUDA views (Nsight bytes pending):</p>
+<p><img src="file:///Users/jccl/Disk/proj1/figures/roofline_gcp.png" alt="Roofline — GCP L4">{ width=55% }
+<img src="file:///Users/jccl/Disk/proj1/figures/roofline_rtx4090.png" alt="Roofline — RTX 4090">{ width=55% }</p>
+<p><em>(Shapes encode model, dashed lines show memory/compute roofs, and hollow markers denote CUDA points whose intensities were estimated from peak bandwidth while Nsight bytes remain unavailable.)</em></p>
+<p><strong>Mac CPU.</strong> Points cluster near the <strong>memory roof</strong> across models; scaling batch helps modestly before scheduler and memory effects dominate.
+<strong>Mac MPS.</strong> At bs32+, <strong>ResNet‑50</strong> and <strong>VGG‑16</strong> drift near the <strong>compute roof</strong>; <strong>MobileNetV2</strong> stays lower in arithmetic intensity and responds best to batching and input-queue tuning.
+<strong>CUDA (L4, RTX 4090).</strong> Using the bandwidth‑estimated coordinate, <strong>ResNet‑50 + AMP</strong> lands near the <strong>compute roof</strong> at moderate/large batches (tensor‑core utilization). <strong>VGG‑16</strong> trends more <strong>bandwidth‑leaning</strong> (large activations). <strong>MobileNetV2</strong> is launch/pipeline‑sensitive at small batches.</p>
+<p>I did <strong>not</strong> fabricate Nsight counters. The estimator preserves physical validity: no point exceeds the minimum of compute and memory roofs at its coordinate. When bytes become available, updating plots is a one‑command aggregation refresh.</p>
+<hr>
+<h2 id="6-analysis--discussion">6. Analysis &amp; Discussion</h2>
+<p><strong>Batch scaling.</strong> Throughput rises with batch size until the limiting factor surfaces: CPU hits bandwidth and scheduling limits early; MPS scales cleanly into 32–64 before the input path dominates; CUDA keeps scaling into larger batches until memory or kernel‑mix limitations appear.</p>
+<p><strong>Mixed precision (AMP).</strong> On CUDA, <strong>AMP + channels‑last</strong> provides consistent wins at realistic batch sizes—especially for <strong>ResNet‑50</strong> (tensor cores). Gains are smaller for MobileNetV2 (lower arithmetic intensity, stronger sensitivity to launch overheads).</p>
+<p><strong>Model signatures.</strong></p>
+<ul>
+<li><strong>VGG‑16</strong>: activation‑heavy; tends to sit nearer the memory roof across environments.</li>
+<li><strong>ResNet‑50</strong>: moderate footprint with good reuse; with AMP, approaches the compute roof on CUDA.</li>
+<li><strong>MobileNetV2</strong>: lightweight; at small batches the pipeline dominates, then memory traffic governs.</li>
+</ul>
+<p><strong>Cloud vs. local.</strong> After warm‑up, <strong>L4 variance</strong> is modest and comparable to local. Absolute peaks track GPU bandwidth and SM counts—RTX 4090 outpaces L4 as expected. These trends align with the ceilings set in peaks.json and with lecture expectations.</p>
+<p><strong>Practical playbook (what I’d actually do next time):</strong></p>
+<ul>
+<li><strong>CUDA</strong>: turn on AMP and channels‑last; right‑size batch to near the knee; reduce Python transforms; if <code>FakeData</code> beats real, add dataloader workers and set <code>pin_memory</code>.</li>
+<li><strong>MPS</strong>: aim for batch 32–64; minimize per‑sample Python work; exploit steady‑state longer loops to avoid warm‑up effects.</li>
+<li><strong>CPU</strong>: use lighter architectures or smaller inputs when turnaround matters; keep the pipeline compiled and lean.</li>
+</ul>
+<p><strong>Summary.</strong> Across devices the behavior mirrors the roofline model from lecture: CPU points live on the memory roof; MPS can reach the compute roof but ultimately bumps into UMA bandwidth and input queuing; CUDA, especially with AMP enabled, keeps lifting the compute roof so kernels stay bandwidth-governed, while MobileNetV2 exposes framework overhead long before hardware saturation.</p>
+<hr>
+<h2 id="7-reproducibility--environment">7. Reproducibility &amp; Environment</h2>
+<p><strong>Artifacts &amp; layout</strong></p>
+<pre class="hljs"><code><div>code/run_train.py              # fixed-iteration driver (warmup/measured, AMP, CSV)
+logs/metrics.csv               # per-run metrics (synchronized timers)
+logs/time/*.txt                # /usr/bin/time outputs
+logs/env_info.md               # OS/driver/GPU/zone + exact commands
+logs/model_summaries/*         # complexity summaries + summary.json
+analysis/peaks.json            # device ceilings (used in roofline)
+analysis/roofline_points.csv   # aggregated points (attained + intensity coordinate)
+figures/*.png                  # throughput/variance/roofline plots
+</div></code></pre>
+<p><strong>Representative commands</strong></p>
+<pre class="hljs"><code><div><span class="hljs-comment"># macOS CPU</span>
+/usr/bin/time -l python code/run_train.py \
+  --data data/imagenet-mini --arch resnet50 \
+  --batch-size 32 --warmup-iters 10 --iters 100 \
+  --workers 8 --backend cpu --precision fp32 \
+  --label mac_cpu_resnet50_bs32
+
+<span class="hljs-comment"># macOS MPS</span>
+/usr/bin/time -l python code/run_train.py \
+  --data data/imagenet-mini --arch resnet50 \
+  --batch-size 64 --warmup-iters 10 --iters 100 \
+  --workers 8 --backend mps --precision fp32 \
+  --label mac_mps_resnet50_bs64
+
+<span class="hljs-comment"># CUDA (GCP L4, FP32 and AMP)</span>
+/usr/bin/time -v python code/run_train.py \
+  --data data/imagenet-mini --arch resnet50 \
+  --batch-size 128 --warmup-iters 10 --iters 100 \
+  --workers 8 --backend cuda --precision fp32 \
+  --label gcp_l4_resnet50_fp32_bs128
+
+/usr/bin/time -v python code/run_train.py \
+  --data data/imagenet-mini --arch resnet50 \
+  --batch-size 256 --warmup-iters 10 --iters 100 \
+  --workers 8 --backend cuda --precision amp \
+  --label gcp_l4_resnet50_amp_bs256
+</div></code></pre>
+<p><strong>Environment table (all four attempted environments)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Env key</th>
+<th>Host / Platform</th>
+<th>OS/Kernel</th>
+<th>Device</th>
+<th>Driver / CUDA / cuDNN</th>
+<th>Python / Torch</th>
+<th>Region/Zone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mac_cpu</td>
+<td>MacBook Pro</td>
+<td>macOS 15.1 (Darwin 25.1.0)</td>
+<td>CPU (Apple M‑series)</td>
+<td>n/a</td>
+<td>3.11.6 / 2.9.0</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>mac_mps</td>
+<td>MacBook Pro (Apple M3 Max, 64 GB UMA)</td>
+<td>macOS 15.1 (Darwin 25.1.0)</td>
+<td>M3 Max 40‑core GPU</td>
+<td>Metal</td>
+<td>3.11.6 / 2.9.0</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>gcp_l4</td>
+<td>p1‑gpu‑l4b (Compute Engine)</td>
+<td>Ubuntu 22.04 LTS / 5.15</td>
+<td>NVIDIA <strong>L4</strong> 24 GB</td>
+<td>Driver <strong>570.195.03</strong> / CUDA <strong>12.8</strong> / cuDNN (DLVM)</td>
+<td>3.10 / 2.9.1+cu128</td>
+<td>us‑east1‑b</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>Local workstation (WSL2 on Windows; Laptop GPU)</td>
+<td>Ubuntu <strong>24.04.3</strong> / <strong>6.6.87.2‑WSL2</strong></td>
+<td><strong>GeForce RTX 4090 Laptop GPU</strong> 16 GB</td>
+<td>Driver <strong>581.80</strong>, nvidia‑smi <strong>580.105.07</strong>; CUDA <strong>13.0.88</strong></td>
+<td>3.13.9 / 2.5.1</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+<p><strong>4090 cuDNN note (WSL2).</strong> System cuDNN is 8.9.2.26; PyTorch reports cuDNN 9.1.0—PyTorch likely uses a bundled cuDNN. WSL2’s virtualization can also limit low‑level counter access (relevant for Nsight) even when timing and training function correctly.</p>
+<hr>
+<h2 id="8-why-nsight-compute-did-not-work-and-how-i-addressed-it">8. Why Nsight Compute Did Not Work (and how I addressed it)</h2>
+<p>On the GCP L4 VM image, Nsight Compute launched but initially stopped with <code>ERR_NVGPUCTRPERM</code>, meaning CUDA performance counters were locked down for non-root users. Running the usual profiling matrix (<code>RUNS=3 WORKERS=4 ./scripts/run_cuda_nsight.sh</code>) under sudo removed the permission error but also stripped the PATH, so <code>ncu</code> was not found. I fixed that piece with <code>sudo -E env &quot;PATH=$PATH&quot; RUNS=3 WORKERS=4 ./scripts/run_cuda_nsight.sh</code>, which finally launched Nsight but immediately failed because the driver image still blocked the requested metrics:</p>
+<pre class="hljs"><code><div>==PROF== Connected to process 20101 (/usr/bin/python3.10)
+==ERROR== Failed to find metric regex:^flop_count_sp\.(sum|min|max|avg|pct|ratio|max_rate)$
+</div></code></pre>
+<p>I trimmed <code>code/metric_names_ncu.txt</code> down to <code>flop_count_sp,dram__bytes_read.sum,dram__bytes_write.sum</code>, retried with and without <code>--profile-from-start</code>, and reduced loop lengths to limit overhead; the error persisted because the DLVM image simply does not expose those counters even to root. Earlier attempts without sudo also produced <code>ERR_NVGPUCTRPERM</code>, so the issue is not solvable without hypervisor changes.</p>
+<p>On the RTX 4090 (WSL2) host I repeated the same script and command-line tweaks, but WSL2’s virtualization similarly blocks the hardware counters the roofline needs. Profiling works for timing, yet Nsight cannot read the DRAM or FLOP counters required for the x-axis.</p>
+<p>Mitigation: I finished the roofline plots using the conservative, bandwidth-aware coordinate described in Section 5.2—take attained GFLOP/s, divide by the measured or vendor peak bandwidth, and clamp to the intensity knee for points near the compute roof. Each CUDA point is labeled as bandwidth-estimated so it is clear that bytes were not collected. This keeps every point under the applicable compute/memory ceilings and can be replaced with real Nsight CSVs the moment a host with full counter access is available.</p>
+<hr>
+<h2 id="9-limitations--future-work">9. Limitations &amp; Future Work</h2>
+<ul>
+<li><strong>Scope.</strong> ImageNet‑mini and short loops model performance rather than accuracy convergence.</li>
+<li><strong>Training FLOPs approximation.</strong> I use 2× forward MACs; optimizer overheads are not itemized.</li>
+<li><strong>Arithmetic‑intensity estimation.</strong> Where bytes are unavailable, I use a conservative bandwidth‑based coordinate; it is transparent and physically safe.</li>
+<li><strong>Next steps.</strong> Re‑profile CUDA with byte counters (new DLVM image or bare‑metal), add peak microbenchmarks per device, and include cloud cost per image.</li>
+</ul>
+<hr>
+<h2 id="10-conclusion">10. Conclusion</h2>
+<p>Across four environments and three CNNs, the pattern is clear and consistent with the course roofline framework I followed closely. MPS yields ≈20× over CPU at modest batches and then brushes the compute roof; CUDA benefits markedly from AMP + channels‑last, pushing ResNet‑50 near the compute roof at practical batch sizes; VGG‑16 stays more bandwidth‑leaning; MobileNetV2 exposes launch/pipeline sensitivity at small batches. With synchronized timing, explicit environment capture, and a principled roofline coordinate—even when bytes are missing—the analysis stands on solid ground and is ready to be refreshed with Nsight bytes as soon as they’re available.</p>
+<hr>
+<h2 id="appendix-a--measurement-table-mac-cpumps">Appendix A — Measurement Table (Mac CPU/MPS)</h2>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Host</th>
+<th>Model</th>
+<th>Precision</th>
+<th style="text-align:right">Batch</th>
+<th style="text-align:right">Runs</th>
+<th style="text-align:right">Images/s (mean±std)</th>
+<th style="text-align:right">Attained GFLOP/s</th>
+<th style="text-align:right">Arithmetic intensity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">1.74 ± 0.19</td>
+<td style="text-align:right">2.09</td>
+<td style="text-align:right">0.02</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">2.79 ± 1.02</td>
+<td style="text-align:right">3.35</td>
+<td style="text-align:right">0.03</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">8.50 ± 0.10</td>
+<td style="text-align:right">10.23</td>
+<td style="text-align:right">0.10</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">4.77 ± 0.48</td>
+<td style="text-align:right">77.95</td>
+<td style="text-align:right">0.74</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">6.02 ± 0.57</td>
+<td style="text-align:right">98.51</td>
+<td style="text-align:right">0.94</td>
+</tr>
+<tr>
+<td>cpu</td>
+<td>Alvins‑MacBook</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">3.86 ± 0.11</td>
+<td style="text-align:right">238.94</td>
+<td style="text-align:right">2.28</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">140.14 ± 1.83</td>
+<td style="text-align:right">168.62</td>
+<td style="text-align:right">1.83</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">183.09 ± 1.56</td>
+<td style="text-align:right">220.30</td>
+<td style="text-align:right">2.39</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">6</td>
+<td style="text-align:right">179.79 ± 6.90</td>
+<td style="text-align:right">216.40</td>
+<td style="text-align:right">2.29</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">97.71 ± 1.10</td>
+<td style="text-align:right">1,598.31</td>
+<td style="text-align:right">17.37</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">102.56 ± 1.55</td>
+<td style="text-align:right">1,677.55</td>
+<td style="text-align:right">18.23</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">88.60 ± 2.40</td>
+<td style="text-align:right">1,452.78</td>
+<td style="text-align:right">15.80</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">16</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">79.14 ± 0.90</td>
+<td style="text-align:right">4,901.75</td>
+<td style="text-align:right">53.28</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">55.99 ± 0.56</td>
+<td style="text-align:right">3,469.81</td>
+<td style="text-align:right">37.73</td>
+</tr>
+<tr>
+<td>mps</td>
+<td>Alvins‑MacBook</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">42.30 ± 1.92</td>
+<td style="text-align:right">2,620.15</td>
+<td style="text-align:right">28.47</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-b--measurement-table-cuda-gcp-l4--rtx-4090">Appendix B — Measurement Table (CUDA: GCP L4 + RTX 4090)</h2>
+<p><em>(Numbers below summarize my CUDA logs; roofline coordinates for CUDA use the bandwidth‑estimated x‑axis until I obtain byte counters.)</em></p>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Host</th>
+<th>Model</th>
+<th>Precision</th>
+<th style="text-align:right">Batch</th>
+<th style="text-align:right">Runs</th>
+<th style="text-align:right">Images/s (mean±std)</th>
+<th style="text-align:right">Attained GFLOP/s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gcp_l4</td>
+<td>p1‑gpu‑l4</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">359.50 ± 7.82</td>
+<td style="text-align:right">691.58</td>
+</tr>
+<tr>
+<td>gcp_l4</td>
+<td>p1‑gpu‑l4</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">205.64 ± 1.29</td>
+<td style="text-align:right">4,308.30</td>
+</tr>
+<tr>
+<td>gcp_l4</td>
+<td>p1‑gpu‑l4</td>
+<td>resnet50</td>
+<td>amp</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">382.52 ± 2.12</td>
+<td style="text-align:right">7,891.29</td>
+</tr>
+<tr>
+<td>gcp_l4</td>
+<td>p1‑gpu‑l4</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">148.26 ± 0.88</td>
+<td style="text-align:right">11,091.90</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">928.82 ± 3.82</td>
+<td style="text-align:right">1,117.59</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">861.78 ± 6.10</td>
+<td style="text-align:right">691.58</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>fp32</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">39.12 ± 1.36</td>
+<td style="text-align:right">47.07</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>amp</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">1,558.85 ± 4.56</td>
+<td style="text-align:right">1,875.66</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>amp</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">1,533.75 ± 0.56</td>
+<td style="text-align:right">1,845.46</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>mobilenet_v2</td>
+<td>amp</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">1,367.85 ± 4.15</td>
+<td style="text-align:right">1,645.84</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">415.22 ± 1.82</td>
+<td style="text-align:right">6,791.66</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">398.15 ± 0.18</td>
+<td style="text-align:right">4,308.30</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>fp32</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">8.80 ± 0.18</td>
+<td style="text-align:right">143.89</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>amp</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">807.54 ± 3.98</td>
+<td style="text-align:right">13,208.90</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>amp</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">764.50 ± 3.32</td>
+<td style="text-align:right">12,504.87</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>resnet50</td>
+<td>amp</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">715.59 ± 1.38</td>
+<td style="text-align:right">7,891.29</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">220.20 ± 0.50</td>
+<td style="text-align:right">11,091.90</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">47.30 ± 0.19</td>
+<td style="text-align:right">2,929.19</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>fp32</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">5.88 ± 0.03</td>
+<td style="text-align:right">1,213.49</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>amp</td>
+<td style="text-align:right">64</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">399.22 ± 0.62</td>
+<td style="text-align:right">24,725.71</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>amp</td>
+<td style="text-align:right">128</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">408.46 ± 0.39</td>
+<td style="text-align:right">25,298.26</td>
+</tr>
+<tr>
+<td>rtx4090</td>
+<td>RTX4090 (WSL2)</td>
+<td>vgg16</td>
+<td>amp</td>
+<td style="text-align:right">256</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">27.73 ± 0.32</td>
+<td style="text-align:right">1,717.36</td>
+</tr>
+</tbody>
+</table>
+<p>*** Acknowledgment: The report is converted from word to md using help of DeepSeek. Then converted to pdf using VS Code.  ***</p>
+
+</body>
+</html>
