@@ -206,6 +206,15 @@ def main() -> None:
             print(f"[warn] Peak specs missing for '{label}', skipping")
             continue
 
+        if ai is None and peak_gbps:
+            ai_lb = attained / peak_gbps if peak_gbps > 0 else None
+            if ai_lb is not None:
+                knee = peak_gflops / peak_gbps if peak_gbps > 0 else None
+                if knee and peak_gflops and peak_gflops > 0 and (attained / peak_gflops) >= 0.7:
+                    ai = max(ai_lb, knee)
+                else:
+                    ai = ai_lb
+
         out_rows.append(
             {
                 "label": label,
