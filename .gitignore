@@ -20,3 +20,7 @@ code/train_imagenet_src
 .DS_Store
 *.zip
 data/imagenet-mini.zip
+
+# Generated reports
+*.html
+*.pdf
