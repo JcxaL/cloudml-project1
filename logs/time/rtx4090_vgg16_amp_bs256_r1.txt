@@ -1,0 +1,24 @@
+MEASURED_SEC=916.174253 IMGS_PER_SEC=27.94 BATCH=256 ARCH=vgg16 BACKEND=CUDA
+	Command being timed: "python code/run_train.py --data data/imagenet-mini --arch vgg16 --batch-size 256 --warmup-iters 10 --iters 100 --workers 8 --precision amp --backend cuda --pin-memory --label rtx4090_vgg16_amp_bs256_r1"
+	User time (seconds): 1048.15
+	System time (seconds): 18.20
+	Percent of CPU this job got: 107%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 16:29.26
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6139216
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 205
+	Minor (reclaiming a frame) page faults: 7459003
+	Voluntary context switches: 20525
+	Involuntary context switches: 909
+	Swaps: 0
+	File system inputs: 20032
+	File system outputs: 32
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

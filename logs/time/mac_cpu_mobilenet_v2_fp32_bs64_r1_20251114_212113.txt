@@ -1,0 +1,19 @@
+MEASURED_SEC=747.353091 IMGS_PER_SEC=8.56 BATCH=64 ARCH=mobilenet_v2 BACKEND=CPU
+      822.25 real      8060.26 user      1795.07 sys
+          7233372160  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             9650186  page reclaims
+                  37  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                8981  voluntary context switches
+            52388968  involuntary context switches
+     185401603238587  instructions retired
+      34303835614638  cycles elapsed
+          5344285880  peak memory footprint

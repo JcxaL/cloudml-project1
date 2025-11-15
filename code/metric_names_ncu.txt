@@ -1,1 +1,1 @@
-flop_count_sp,flop_count_hp,dram__bytes_read.sum,dram__bytes_write.sum,pcie__read_bytes.sum,pcie__write_bytes.sum
+flop_count_sp,dram__bytes_read.sum,dram__bytes_write.sum

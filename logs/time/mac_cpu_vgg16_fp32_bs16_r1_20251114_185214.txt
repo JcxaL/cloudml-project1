@@ -1,0 +1,19 @@
+MEASURED_SEC=423.970221 IMGS_PER_SEC=3.77 BATCH=16 ARCH=vgg16 BACKEND=CPU
+      469.93 real      1574.86 user      1571.95 sys
+          5122834432  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              342956  page reclaims
+                  10  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   5  voluntary context switches
+           193490977  involuntary context switches
+      25478687053404  instructions retired
+      10532971652863  cycles elapsed
+          2717404592  peak memory footprint

@@ -1,0 +1,19 @@
+MEASURED_SEC=9.892639 IMGS_PER_SEC=161.74 BATCH=16 ARCH=mobilenet_v2 BACKEND=MPS
+       13.04 real        12.04 user         5.66 sys
+           837615616  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               58923  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   3  voluntary context switches
+              353646  involuntary context switches
+        111347665550  instructions retired
+         50788769363  cycles elapsed
+          3213117024  peak memory footprint

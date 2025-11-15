@@ -2,50 +2,76 @@
   "rtx4090": {
     "description": "Local GeForce RTX 4090 (Ada, 24GB GDDR6X, 384-bit)",
     "peak_gbps": 1008,
-    "peak_gflops": { "fp32": 82600, "fp16": 330000 }
+    "peak_gflops": {
+      "fp32": 82600,
+      "fp16": 330000
+    }
   },
-
+  "mac_m3_max": {
+    "description": "Local Apple M3 Max 40-core GPU (64 GB UMA) -- torch.mm 4096^2 => ~11.4 TFLOP/s",
+    "peak_gbps": 92,
+    "peak_gflops": {
+      "fp32": 11400
+    }
+  },
+  "mps": {
+    "description": "Apple M3 Max MPS backend (same measurements as mac_m3_max)",
+    "peak_gbps": 92,
+    "peak_gflops": {
+      "fp32": 11400
+    }
+  },
+  "cpu_m3_max": {
+    "description": "Local Apple M3 Max CPU (12P+4E) -- torch.mm 4096^2 => ~2.3 TFLOP/s",
+    "peak_gbps": 105,
+    "peak_gflops": {
+      "fp32": 2330
+    }
+  },
+  "cpu": {
+    "description": "Generic CPU fallback (defaults to Apple M3 Max numbers)",
+    "peak_gbps": 105,
+    "peak_gflops": {
+      "fp32": 2330
+    }
+  },
   "gcp_l4": {
     "description": "GCP NVIDIA L4 (Ada, 24GB)",
     "peak_gbps": 300,
-    "peak_gflops": { "fp32": 30300, "fp16": 242000, "bf16": 242000, "tf32": 120000 }
+    "peak_gflops": {
+      "fp32": 30300,
+      "fp16": 242000,
+      "bf16": 242000,
+      "tf32": 120000
+    }
   },
-  "l4": { "alias_of": "gcp_l4" },
-
+  "gcp": {
+    "description": "Generic GCP CUDA runs (maps to L4 defaults)",
+    "peak_gbps": 300,
+    "peak_gflops": {
+      "fp32": 30300,
+      "amp": 242000,
+      "fp16": 242000,
+      "bf16": 242000,
+      "tf32": 120000
+    }
+  },
   "gcp_t4": {
     "description": "GCP NVIDIA T4 (Turing, 16GB)",
     "peak_gbps": 300,
-    "peak_gflops": { "fp32": 8100, "fp16": 65000 }
+    "peak_gflops": {
+      "fp32": 8100,
+      "fp16": 65000
+    }
   },
-  "t4": { "alias_of": "gcp_t4" },
-
   "gcp_a100_40gb": {
     "description": "GCP NVIDIA A100 40GB (HBM2)",
     "peak_gbps": 1555,
-    "peak_gflops": { "fp32": 19500, "tf32": 156000, "fp16": 312000, "bf16": 312000 }
-  },
-  "a100_40gb": { "alias_of": "gcp_a100_40gb" },
-
-  "mac_m2_pro": {
-    "description": "Local Apple M2 Pro (MPS)",
-    "peak_gbps": 200,
-    "peak_gflops": { "fp32": 6500 }
-  },
-  "mac_m2_max": {
-    "description": "Local Apple M2 Max (MPS)",
-    "peak_gbps": 400,
-    "peak_gflops": { "fp32": 13600 }
-  },
-
-  "mps": {
-    "description": "Generic Apple MPS (set to your chip's values or alias to mac_* entry)",
-    "peak_gbps": 200,
-    "peak_gflops": { "fp32": 6500 }
-  },
-
-  "cpu": {
-    "description": "Local CPU (set to *measured* or platform theoretical)",
-    "peak_gbps": 100,
-    "peak_gflops": { "fp32": 1000 }
+    "peak_gflops": {
+      "fp32": 19500,
+      "tf32": 156000,
+      "fp16": 312000,
+      "bf16": 312000
+    }
   }
 }

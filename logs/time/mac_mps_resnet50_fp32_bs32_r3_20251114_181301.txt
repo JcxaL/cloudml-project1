@@ -1,0 +1,19 @@
+MEASURED_SEC=31.472554 IMGS_PER_SEC=101.68 BATCH=32 ARCH=resnet50 BACKEND=MPS
+       37.26 real        54.56 user       107.13 sys
+           957972480  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               73864  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   5  voluntary context switches
+             8806973  involuntary context switches
+        873062753725  instructions retired
+        474302088828  cycles elapsed
+          5368006408  peak memory footprint
