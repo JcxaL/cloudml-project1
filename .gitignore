@@ -7,7 +7,7 @@ env/
 .venv/
 
 # Data & logs (large / regenerated)
-data/imagenet-mini/
+data/
 logs/metrics.csv
 logs/*.txt
 tmp/
